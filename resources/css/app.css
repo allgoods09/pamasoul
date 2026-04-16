@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply text-gray-900 bg-gray-50 font-sans;
+    }
+}
+
+/* Custom scrollbar with your color */
+::-webkit-scrollbar-thumb {
+    background-color: #B49AFF;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+
+/* Selection color */
+::selection {
+    background-color: #B49AFF;
+    color: white;
+}
