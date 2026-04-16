@@ -319,60 +319,65 @@ export default function ShopIndex({ products, categories, filters }) {
                     {hasProducts && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {productsData.map((product) => (
-                                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group">
-                                    {/* Clickable Image */}
-                                    <Link href={`/product/${product.id}`}>
-                                        <div className="h-48 overflow-hidden bg-gray-100">
-                                            <img
-                                                src={getProductImageUrl(product, 'medium')}
-                                                alt={product.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                loading="lazy"
-                                                onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = 'https://picsum.photos/id/20/400/300';
-                                                }}
-                                            />
-                                        </div>
-                                    </Link>
-
-                                    {/* Product Info */}
-                                    <div className="p-4">
-                                        {/* Clickable Title */}
+                                <Link 
+                                key={product.id}
+                                href={`/product/${product.id}`}
+                                >
+                                    <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group">
+                                        {/* Clickable Image */}
                                         <Link href={`/product/${product.id}`}>
-                                            <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-1">
-                                                {product.name}
-                                            </h3>
+                                            <div className="h-48 overflow-hidden bg-gray-100">
+                                                <img
+                                                    src={getProductImageUrl(product, 'medium')}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    loading="lazy"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'https://picsum.photos/id/20/400/300';
+                                                    }}
+                                                />
+                                            </div>
                                         </Link>
-                                        
-                                        <p className="text-sm text-gray-500 mb-2">{product.category?.name}</p>
 
-                                        <div className="flex items-center justify-between mb-3">
-                                            <p className="text-lg font-bold text-blue-600">
-                                                ₱{Number(product.price).toLocaleString()}
-                                            </p>
-                                            <span className={`text-xs px-2 py-1 rounded ${
-                                                product.stock > 5 ? 'bg-green-100 text-green-700' :
-                                                product.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-red-100 text-red-700'
-                                            }`}>
-                                                {product.stock_status}
-                                            </span>
+                                        {/* Product Info */}
+                                        <div className="p-4">
+                                            {/* Clickable Title */}
+                                            <Link href={`/product/${product.id}`}>
+                                                <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-1">
+                                                    {product.name}
+                                                </h3>
+                                            </Link>
+                                            
+                                            <p className="text-sm text-gray-500 mb-2">{product.category?.name}</p>
+
+                                            <div className="flex items-center justify-between mb-3">
+                                                <p className="text-lg font-bold text-blue-600">
+                                                    ₱{Number(product.price).toLocaleString()}
+                                                </p>
+                                                <span className={`text-xs px-2 py-1 rounded ${
+                                                    product.stock > 5 ? 'bg-green-100 text-green-700' :
+                                                    product.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-red-100 text-red-700'
+                                                }`}>
+                                                    {product.stock_status}
+                                                </span>
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleAddToCart(product.id)}
+                                                disabled={product.stock === 0}
+                                                className={`mt-2 w-full py-2 rounded-lg transition-colors ${
+                                                    product.stock > 0
+                                                        ? 'bg-pamasoul-600 text-white hover:bg-pamasoul-800'
+                                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                                            </button>
                                         </div>
-
-                                        <button
-                                            onClick={() => handleAddToCart(product.id)}
-                                            disabled={product.stock === 0}
-                                            className={`mt-2 w-full py-2 rounded-lg transition-colors ${
-                                                product.stock > 0
-                                                    ? 'bg-pamasoul-600 text-white hover:bg-pamasoul-800'
-                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-                                        </button>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}
