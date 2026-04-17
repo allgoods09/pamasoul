@@ -75,10 +75,10 @@ export default function ShopIndex({ products, categories, filters }) {
 
     // 🖼️ BACKGROUND IMAGES - FILL IN YOUR IMGUR/IMGBB LINKS HERE
     const categoryBackgrounds = {
-        1: "https://iili.io/BUuP8zP.jpg", // Fishing Rods background image URL
-        2: "https://iili.io/BUuLcdJ.jpg", // Fishing Lines background image URL
-        3: "https://iili.io/BUuDdYu.jpg", // Fishing Reels background image URL
-        default: "https://iili.io/BUugVcl.jpg", // Shop All / Default background image URL
+        1: "../images/rodbanner.jpg", // Fishing Rods background image URL
+        2: "../images/linebanner.jpg", // Fishing Lines background image URL
+        3: "../images/reelbanner.jpg", // Fishing Reels background image URL
+        default: "../images/defaultbanner.jpg", // Shop All / Default background image URL
     };
 
     // 🔍 DYNAMIC SEARCH PLACEHOLDERS PER CATEGORY

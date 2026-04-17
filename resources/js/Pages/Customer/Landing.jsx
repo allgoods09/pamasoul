@@ -35,7 +35,7 @@ export default function Landing({ featuredProducts, categories }) {
                 <div 
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
-                        backgroundImage: `url('https://iili.io/BUAC67f.png')`,
+                        backgroundImage: `url('../images/herobanner.jpg')`,
                         backgroundColor: '#1e3a8a', // Fallback blue color
                     }}
                 >
