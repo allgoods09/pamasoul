@@ -78,8 +78,28 @@ export default function ShopIndex({ products, categories, filters }) {
         1: "", // Fishing Rods background image URL
         2: "", // Fishing Lines background image URL
         3: "", // Fishing Reels background image URL
-        default: "", // Shop All / Default background image URL
+        default: "https://dummyimage.com/1290x500/bd11bd/fff", // Shop All / Default background image URL
     };
+
+    // 🔍 DYNAMIC SEARCH PLACEHOLDERS PER CATEGORY
+    const getSearchPlaceholder = () => {
+        if (!currentCategory) {
+            return "Search for fishing rods, reels, lines...";
+        }
+
+        switch (currentCategory.id) {
+            case 1:
+                return "Search for rods... e.g., spinning rod, casting rod, surf rod";
+            case 2:
+                return "Search for fishing lines... e.g., braided line, monofilament, fluorocarbon";
+            case 3:
+                return "Search for reels... e.g., baitcasting, spinning reel, conventional reel";
+            default:
+                return `Search for ${currentCategory.name.toLowerCase()}...`;
+        }
+    };
+
+    const searchPlaceholder = getSearchPlaceholder();
 
     // Get hero background image based on current category
     const getHeroBackground = () => {
@@ -167,25 +187,23 @@ export default function ShopIndex({ products, categories, filters }) {
             <Head title={`${headerContent.title} - Pamasoul`} />
 
             <div className="bg-gray-50 min-h-screen">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Background Image Wrapper - Only behind header and search */}
-                    <div
-                        className="relative rounded-lg overflow-hidden mb-8"
-                        style={{
-                            backgroundImage: heroBackground
-                                ? `url(${heroBackground})`
-                                : "none",
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                        }}
-                    >
-                        {/* Dark Overlay for text readability */}
-                        {heroBackground && (
-                            <div className="absolute inset-0 bg-black/40 rounded-lg" />
-                        )}
+                {/* Full Width Background Section - touches navbar, no radius */}
+                <div
+                    className="w-full"
+                    style={{
+                        backgroundImage: heroBackground
+                            ? `url(${heroBackground})`
+                            : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                    }}
+                >
+                    {/* Dark Overlay for text readability */}
+                    {heroBackground && <div className="w-full bg-black/40" />}
 
-                        {/* Content with padding - stays exactly as before */}
-                        <div className="relative z-10 p-6 md:p-8">
+                    {/* Content Container - keeps text aligned with products */}
+                    <div className={`${heroBackground ? "bg-black/40" : ""}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                             {/* Dynamic Header */}
                             <div className="mb-6">
                                 <div className="flex items-center space-x-3 mb-2">
@@ -214,7 +232,7 @@ export default function ShopIndex({ products, categories, filters }) {
                                 )}
                             </div>
 
-                            {/* Search Bar */}
+                            {/* Search Bar with Dynamic Placeholder */}
                             <div className="mb-0">
                                 <form
                                     onSubmit={handleSearchSubmit}
@@ -224,7 +242,7 @@ export default function ShopIndex({ products, categories, filters }) {
                                         ref={searchRef}
                                         type="text"
                                         defaultValue={filters?.search || ""}
-                                        placeholder="Search for fishing rods, reels, lines..."
+                                        placeholder={searchPlaceholder}
                                         className="w-full rounded-lg border-gray-300 py-3 pl-4 pr-12 focus:border-blue-500 focus:ring-blue-500 text-gray-900"
                                     />
                                     <button
@@ -237,7 +255,10 @@ export default function ShopIndex({ products, categories, filters }) {
                             </div>
                         </div>
                     </div>
+                </div>
 
+                {/* Main Content Area */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Mobile Filter Toggle */}
                     <div className="lg:hidden mb-4">
                         <button
