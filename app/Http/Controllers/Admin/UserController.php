@@ -23,11 +23,19 @@ class UserController extends Controller
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
-                  ->orWhere('email', 'LIKE', "%{$request->search}%");
+                ->orWhere('email', 'LIKE', "%{$request->search}%");
             });
         }
         
-        $users = $query->latest()->paginate(15)->withQueryString();
+        $users = $query->withCount('orders')->latest()->paginate(15)->withQueryString();
+        
+        // Calculate total_spent for each user
+        $users->getCollection()->transform(function ($user) {
+            $user->total_spent = $user->orders()
+                ->where('status', 'Completed')
+                ->sum('total');
+            return $user;
+        });
         
         return inertia('Admin/Users/Index', [
             'users' => $users,
@@ -37,10 +45,15 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $orders = $user->orders()->latest()->get();
+        $orders = $user->orders()->withCount('items')->latest()->get();
+        
+        // Calculate total_spent for the user
+        $user->total_spent = $user->orders()
+            ->where('status', 'Completed')
+            ->sum('total');
         
         return inertia('Admin/Users/Show', [
-            'user' => $user,
+            'user' => $user->load('orders'),
             'orders' => $orders,
         ]);
     }
@@ -98,5 +111,10 @@ class UserController extends Controller
         
         return redirect()->route('customer.dashboard')
             ->with('success', "You are now viewing as {$user->name}");
+    }
+
+    public function getTotalSpentAttribute(): float
+    {
+        return $this->orders()->where('status', 'Completed')->sum('total');
     }
 }

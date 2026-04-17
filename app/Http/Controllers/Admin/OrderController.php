@@ -36,7 +36,7 @@ class OrderController extends Controller
             });
         }
         
-        $orders = $query->latest()->paginate(15)->withQueryString();
+        $orders = $query->withCount('items')->latest()->paginate(15)->withQueryString();
         
         $statusCounts = [
             'Pending' => Order::where('status', 'Pending')->count(),
@@ -59,6 +59,7 @@ class OrderController extends Controller
         
         return inertia('Admin/Orders/Show', [
             'order' => $order,
+            'shippingConfig' => $this->getShippingConfig(),
         ]);
     }
     

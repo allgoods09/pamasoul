@@ -75,10 +75,10 @@ export default function ShopIndex({ products, categories, filters }) {
 
     // 🖼️ BACKGROUND IMAGES - FILL IN YOUR IMGUR/IMGBB LINKS HERE
     const categoryBackgrounds = {
-        1: "", // Fishing Rods background image URL
-        2: "", // Fishing Lines background image URL
-        3: "", // Fishing Reels background image URL
-        default: "https://dummyimage.com/1290x500/bd11bd/fff", // Shop All / Default background image URL
+        1: "https://iili.io/BUuP8zP.jpg", // Fishing Rods background image URL
+        2: "https://iili.io/BUuLcdJ.jpg", // Fishing Lines background image URL
+        3: "https://iili.io/BUuDdYu.jpg", // Fishing Reels background image URL
+        default: "https://iili.io/BUugVcl.jpg", // Shop All / Default background image URL
     };
 
     // 🔍 DYNAMIC SEARCH PLACEHOLDERS PER CATEGORY
@@ -445,11 +445,10 @@ export default function ShopIndex({ products, categories, filters }) {
                                         className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group"
                                     >
                                         {/* Clickable Image */}
-                                        <Link href={`/product/${product.id}`}>
-                                            <div className="h-48 overflow-hidden bg-gray-100">
-                                                <img
-                                                    src={getProductImageUrl(
-                                                        product,
+                                        <div className="h-48 overflow-hidden bg-gray-100">
+                                            <img
+                                                src={getProductImageUrl(
+                                                    product,
                                                         "medium",
                                                     )}
                                                     alt={product.name}
@@ -462,19 +461,12 @@ export default function ShopIndex({ products, categories, filters }) {
                                                     }}
                                                 />
                                             </div>
-                                        </Link>
-
                                         {/* Product Info */}
                                         <div className="p-4">
                                             {/* Clickable Title */}
-                                            <Link
-                                                href={`/product/${product.id}`}
-                                            >
                                                 <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-1">
                                                     {product.name}
                                                 </h3>
-                                            </Link>
-
                                             <p className="text-sm text-gray-500 mb-2">
                                                 {product.category?.name}
                                             </p>

@@ -25,3 +25,7 @@
     background-color: #B49AFF;
     color: white;
 }
+
+html {
+    overflow-y: scroll;
+}

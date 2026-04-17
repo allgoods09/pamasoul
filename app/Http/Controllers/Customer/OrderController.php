@@ -36,6 +36,17 @@ class OrderController extends Controller
             ->latest()
             ->paginate(10);
         
+        // Add shipping_fee to each order
+        $orders->getCollection()->transform(function ($order) {
+            $itemsSubtotal = $order->items->sum(function ($item) {
+                return $item->quantity * $item->price_snapshot;
+            });
+            $freeThreshold = config('shipping.free_threshold', 5000);
+            $baseFee = config('shipping.base_fee', 50);
+            $order->shipping_fee = $itemsSubtotal >= $freeThreshold ? 0 : $baseFee;
+            return $order;
+        });
+        
         return inertia('Customer/Orders/Index', [
             'orders' => $orders,
         ]);
@@ -51,7 +62,15 @@ class OrderController extends Controller
             abort(403);
         }
         
-        $order->load('items.product');
+        $order->load('items.product.category');
+        
+        // Calculate shipping fee
+        $itemsSubtotal = $order->items->sum(function ($item) {
+            return $item->quantity * $item->price_snapshot;
+        });
+        $freeThreshold = config('shipping.free_threshold', 5000);
+        $baseFee = config('shipping.base_fee', 50);
+        $order->shipping_fee = $itemsSubtotal >= $freeThreshold ? 0 : $baseFee;
         
         return inertia('Customer/Orders/Show', [
             'order' => $order,

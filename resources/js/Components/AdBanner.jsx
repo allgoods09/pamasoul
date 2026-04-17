@@ -132,8 +132,9 @@ export default function AdBanner({ position, page, className = '' }) {
                         )}
 
                         <div className="mt-4">
-                            <span className="inline-block text-sm font-medium text-white bg-pamasoul-600 px-4 py-2 hover:bg-pamasoul-800 transition">
+                            <span className="inline-block text-xs text-gray-400 hover:text-gray-500 transition-colors cursor-pointer">
                                 Learn More
+                                <span className="ml-1 text-[10px]">↗</span>
                             </span>
                         </div>
                     </div>

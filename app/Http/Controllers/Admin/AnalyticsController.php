@@ -30,7 +30,7 @@ class AnalyticsController extends Controller
         // Daily Sales Chart Data
         $dailySales = Order::where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $dateTo])
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total) as total'))
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total) as total'), DB::raw('COUNT(*) as orders'))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
@@ -61,9 +61,8 @@ class AnalyticsController extends Controller
         // Monthly Trends (last 12 months)
         $monthlyTrends = Order::where('status', 'Completed')
             ->where('created_at', '>=', now()->subMonths(12))
-            ->select(DB::raw('YEAR(created_at) as year'), DB::raw('MONTH(created_at) as month'), DB::raw('SUM(total) as total'))
-            ->groupBy('year', 'month')
-            ->orderBy('year')
+            ->select(DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'), DB::raw('SUM(total) as total'), DB::raw('COUNT(*) as orders'))
+            ->groupBy('month')
             ->orderBy('month')
             ->get();
         
@@ -82,7 +81,7 @@ class AnalyticsController extends Controller
             ->count();
         
         // Stock Status
-        $lowStockProducts = Product::where('stock', '<=', 5)->count();
+        $lowStockProducts = Product::where('stock', '<=', 5)->where('stock', '>', 0)->count();
         $outOfStockProducts = Product::where('stock', '<=', 0)->count();
         $totalProducts = Product::count();
         
@@ -174,6 +173,8 @@ class AnalyticsController extends Controller
         ];
         
         $pdf = Pdf::loadView('pdf.analytics-report', $data);
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->getDomPDF()->set_option('isPhpEnabled', true);
         
         return $pdf->download("analytics-report-{$dateFrom}-to-{$dateTo}.pdf");
     }
@@ -193,12 +194,15 @@ class AnalyticsController extends Controller
         $csvFileName = "analytics-export-{$dateFrom}-to-{$dateTo}.csv";
         $handle = fopen('php://temp', 'w+');
         
+        // Add UTF-8 BOM for Excel compatibility
+        fwrite($handle, "\xEF\xBB\xBF");
+        
         // Add headers
-        fputcsv($handle, ['Date', 'Total Sales', 'Number of Orders']);
+        fputcsv($handle, ['Date', 'Total Sales (₱)', 'Number of Orders']);
         
         // Add data
         foreach ($dailySales as $sale) {
-            fputcsv($handle, [$sale->date, $sale->total, $sale->orders]);
+            fputcsv($handle, [$sale->date, number_format($sale->total, 2), $sale->orders]);
         }
         
         rewind($handle);
@@ -206,7 +210,7 @@ class AnalyticsController extends Controller
         fclose($handle);
         
         return response($csvContent, 200, [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$csvFileName}\"",
         ]);
     }

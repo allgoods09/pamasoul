@@ -12,8 +12,12 @@ class CartSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get all customer users (excluding admin)
-        $customers = User::where('role', 'customer')->get();
+        // Get all customer users (excluding admin and demo accounts)
+        // Exclude admin@pamasoul.com and customer@pamasoul.com
+        $customers = User::where('role', 'customer')
+            ->whereNotIn('email', ['customer@pamasoul.com'])
+            ->get();
+        
         $products = Product::all();
 
         foreach ($customers as $customer) {
@@ -26,7 +30,7 @@ class CartSeeder extends Seeder
 
             // Add random items to cart (1-5 items per customer)
             $numItems = rand(1, 5);
-            $randomProducts = $products->random($numItems);
+            $randomProducts = $products->random(min($numItems, $products->count()));
 
             foreach ($randomProducts as $product) {
                 $quantity = rand(1, 3);

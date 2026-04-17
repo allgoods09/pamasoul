@@ -28,6 +28,20 @@ class HandleInertiaRequests extends Middleware
                 'free_threshold' => config('shipping.free_threshold', 5000),
                 'base_fee' => config('shipping.base_fee', 50),
             ],
+            'hideAds' => $this->shouldHideAds($request),
         ]);
+    }
+
+    private function shouldHideAds(Request $request): bool
+    {
+        $hideAdsRoutes = [
+            'cart.index',
+            'checkout.index',
+            'order.confirmation',
+            'customer.orders',
+            'profile.edit'
+        ];
+        
+        return in_array($request->route()?->getName(), $hideAdsRoutes);
     }
 }

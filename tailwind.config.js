@@ -27,6 +27,7 @@ export default {
                     700: '#7A5BB3',
                     800: '#6A4B99',
                     900: '#5A3B80',
+                    dark: '#41295f',
                     DEFAULT: '#B49AFF',
                 },
             }

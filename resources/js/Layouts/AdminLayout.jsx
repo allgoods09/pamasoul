@@ -31,6 +31,17 @@ export default function AdminLayout({ children }) {
         return url === href || url.startsWith(href + '/');
     };
 
+    // Consistent active link styling
+    const getLinkClass = (active) => {
+        return active
+            ? 'bg-pamasoul-600 text-white shadow-sm'
+            : 'text-gray-700 hover:bg-pamasoul-50 hover:text-pamasoul-600';
+    };
+
+    const getIconClass = (active) => {
+        return active ? 'text-white' : 'text-gray-400 group-hover:text-pamasoul-600';
+    };
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Mobile sidebar backdrop */}
@@ -45,37 +56,25 @@ export default function AdminLayout({ children }) {
             <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
                 <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                     {/* Sidebar header */}
-                    <div className="flex h-16 items-center justify-between px-4 border-b">
+                    <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
                         <Link href="/admin/dashboard" className="flex items-center space-x-2">
-                                <ApplicationLogo/>
+                            <ApplicationLogo className="h-8 w-8" />
                             <span className="text-xl font-bold text-pamasoul-600">Pamasoul</span>
                         </Link>
-                        <button
-                            onClick={() => setSidebarOpen(false)}
-                            className="lg:hidden rounded-md p-1 text-gray-500 hover:bg-gray-100"
-                        >
-                            <XMarkIcon className="h-6 w-6" />
-                        </button>
                     </div>
 
                     {/* Navigation */}
-                    <nav className="flex-1 space-y-1 px-2 py-4">
+                    <nav className="flex-1 space-y-1 px-3 py-4">
                         {navigation.map((item) => {
                             const active = isActive(item.href);
                             return (
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    className={`group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                                        active
-                                            ? 'bg-pamasoul-500 text-white'
-                                            : 'text-gray-700 hover:bg-pamasoul-300'
-                                    }`}
+                                    className={`group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${getLinkClass(active)}`}
                                 >
                                     <item.icon
-                                        className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                                            active ? 'text-white' : 'text-black group-hover:text-white'
-                                        }`}
+                                        className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${getIconClass(active)}`}
                                     />
                                     {item.name}
                                 </Link>
@@ -83,11 +82,11 @@ export default function AdminLayout({ children }) {
                         })}
                     </nav>
 
-                    {/* Sidebar footer */}
-                    <div className="border-t p-4">
+                    {/* Sidebar footer - User info */}
+                    <div className="border-t border-gray-200 p-4">
                         <div className="flex items-center space-x-3">
-                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span className="text-sm font-medium text-blue-700">
+                            <div className="h-9 w-9 rounded-full bg-pamasoul-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-sm font-semibold text-pamasoul-700">
                                     {user?.name?.charAt(0).toUpperCase()}
                                 </span>
                             </div>
@@ -103,7 +102,8 @@ export default function AdminLayout({ children }) {
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+                                className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-500 transition-colors"
+                                title="Logout"
                             >
                                 <ArrowRightOnRectangleIcon className="h-5 w-5" />
                             </Link>
@@ -112,43 +112,38 @@ export default function AdminLayout({ children }) {
                 </div>
             </div>
 
-            {/* Mobile sidebar */}
-            <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:hidden ${
+            {/* Mobile sidebar - Same styling as desktop */}
+            <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out lg:hidden ${
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}>
                 <div className="flex h-full flex-col">
                     {/* Sidebar header */}
-                    <div className="flex h-16 items-center justify-between px-4 border-b">
+                    <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
                         <Link href="/admin/dashboard" className="flex items-center space-x-2">
-                            <ShoppingBagIcon className="h-8 w-8 text-blue-600" />
-                            <span className="text-xl font-bold text-gray-900">Pamasoul</span>
+                            <ApplicationLogo className="h-8 w-8" />
+                            <span className="text-xl font-bold text-pamasoul-600">Pamasoul</span>
                         </Link>
                         <button
                             onClick={() => setSidebarOpen(false)}
-                            className="rounded-md p-1 text-gray-500 hover:bg-gray-100"
+                            className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 transition-colors"
                         >
-                            <XMarkIcon className="h-6 w-6" />
+                            <XMarkIcon className="h-5 w-5" />
                         </button>
                     </div>
 
                     {/* Navigation */}
-                    <nav className="flex-1 space-y-1 px-2 py-4">
+                    <nav className="flex-1 space-y-1 px-3 py-4">
                         {navigation.map((item) => {
                             const active = isActive(item.href);
                             return (
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    className={`group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                                        active
-                                            ? 'bg-blue-50 text-blue-700'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                    }`}
+                                    onClick={() => setSidebarOpen(false)}
+                                    className={`group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${getLinkClass(active)}`}
                                 >
                                     <item.icon
-                                        className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                                            active ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
-                                        }`}
+                                        className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${getIconClass(active)}`}
                                     />
                                     {item.name}
                                 </Link>
@@ -157,10 +152,10 @@ export default function AdminLayout({ children }) {
                     </nav>
 
                     {/* Sidebar footer */}
-                    <div className="border-t p-4">
+                    <div className="border-t border-gray-200 p-4">
                         <div className="flex items-center space-x-3">
-                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span className="text-sm font-medium text-blue-700">
+                            <div className="h-9 w-9 rounded-full bg-pamasoul-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-sm font-semibold text-pamasoul-700">
                                     {user?.name?.charAt(0).toUpperCase()}
                                 </span>
                             </div>
@@ -176,7 +171,7 @@ export default function AdminLayout({ children }) {
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+                                className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-500 transition-colors"
                             >
                                 <ArrowRightOnRectangleIcon className="h-5 w-5" />
                             </Link>
@@ -185,28 +180,28 @@ export default function AdminLayout({ children }) {
                 </div>
             </div>
 
-            {/* Main content area - THIS IS THE KEY FIX */}
+            {/* Main content area */}
             <div className="lg:pl-64">
                 {/* Top header */}
-                <header className="sticky top-0 z-10 bg-white shadow-sm">
+                <header className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
                     <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                         <button
                             onClick={() => setSidebarOpen(true)}
-                            className="rounded-md p-1 text-gray-500 hover:bg-gray-100 lg:hidden"
+                            className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 transition-colors lg:hidden"
                         >
                             <Bars3Icon className="h-6 w-6" />
                         </button>
 
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-4 ml-auto lg:ml-0">
                             <span className="text-sm text-gray-500 hidden sm:block">
-                                Welcome back, {user?.name}
+                                Welcome back, <span className="font-medium text-gray-700">{user?.name}</span>
                             </span>
-                            <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+                            <div className="h-6 w-px bg-gray-200 hidden sm:block" />
                             <Link
                                 href="/"
-                                className="text-sm text-gray-500 hover:text-gray-700"
+                                className="text-sm text-gray-500 hover:text-pamasoul-600 transition-colors"
                             >
-                                View Store
+                                View Store →
                             </Link>
                         </div>
                     </div>
