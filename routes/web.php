@@ -22,6 +22,18 @@ Route::get('/', function () {
     return redirect()->route('landing');
 });
 
+Route::get('/about', function () {
+    return inertia('Customer/About');
+})->name('about');
+
+Route::get('/policies', function () {
+    return inertia('Customer/Policies');
+})->name('policies');
+
+Route::get('/support', function () {
+    return inertia('Customer/Support');
+})->name('support');
+
 // ==================== PROFILE ROUTES ====================
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

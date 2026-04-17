@@ -11,7 +11,7 @@ import {
     CurrencyDollarIcon,
     ShieldCheckIcon,
     HeartIcon,
-    BoltIcon
+    BoltIcon,
 } from "@heroicons/react/24/outline";
 import { getProductImageUrl } from "@/helpers/imageHelper";
 import toast, { Toaster } from "react-hot-toast";
@@ -245,7 +245,8 @@ export default function CartIndex({
                             Your Cart is Empty
                         </h1>
                         <p className="text-gray-500 mb-8">
-                            Looks like you haven't added any items to your cart yet.
+                            Looks like you haven't added any items to your cart
+                            yet.
                         </p>
                         <Link
                             href="/shop"
@@ -269,8 +270,12 @@ export default function CartIndex({
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-                        <p className="text-gray-500 mt-1">Review and manage your items before checkout</p>
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            Shopping Cart
+                        </h1>
+                        <p className="text-gray-500 mt-1">
+                            Review and manage your items before checkout
+                        </p>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -283,28 +288,39 @@ export default function CartIndex({
                                             type="checkbox"
                                             checked={allSelected}
                                             onChange={toggleSelectAll}
-                                            disabled={updating || selectableItemsCount === 0}
+                                            disabled={
+                                                updating ||
+                                                selectableItemsCount === 0
+                                            }
                                             className="h-4 w-4 text-pamasoul-600 rounded border-gray-300 focus:ring-pamasoul-500"
                                         />
                                         <label className="ml-3 text-sm font-medium text-gray-700">
-                                            Select All ({selectableItemsCount} available items)
+                                            Select All ({selectableItemsCount}{" "}
+                                            available items)
                                         </label>
                                     </div>
-                                    <span className="text-xs text-gray-400">Price</span>
+                                    <span className="text-xs text-gray-400">
+                                        Price
+                                    </span>
                                 </div>
 
                                 <div className="divide-y divide-gray-200">
                                     {items.map((item) => {
-                                        const isSelected = selectedItems.includes(item.id);
+                                        const isSelected =
+                                            selectedItems.includes(item.id);
                                         const currentStock = item.product.stock;
-                                        const isLowStock = currentStock > 0 && currentStock <= 5;
+                                        const isLowStock =
+                                            currentStock > 0 &&
+                                            currentStock <= 5;
                                         const isOutOfStock = currentStock === 0;
 
                                         return (
                                             <div
                                                 key={item.id}
                                                 className={`relative p-4 sm:p-6 flex flex-col sm:flex-row gap-4 transition-all ${
-                                                    isOutOfStock ? "bg-gray-50 opacity-60" : ""
+                                                    isOutOfStock
+                                                        ? "bg-gray-50 opacity-60"
+                                                        : ""
                                                 }`}
                                             >
                                                 {isOutOfStock && (
@@ -315,21 +331,33 @@ export default function CartIndex({
                                                     <input
                                                         type="checkbox"
                                                         checked={isSelected}
-                                                        onChange={() => toggleSelectItem(item.id)}
-                                                        disabled={updating || isOutOfStock}
+                                                        onChange={() =>
+                                                            toggleSelectItem(
+                                                                item.id,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            updating ||
+                                                            isOutOfStock
+                                                        }
                                                         className="h-4 w-4 text-pamasoul-600 rounded border-gray-300 focus:ring-pamasoul-500 mt-1"
                                                     />
                                                 </div>
 
                                                 <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative z-10">
                                                     <img
-                                                        src={getProductImageUrl(item.product)}
+                                                        src={getProductImageUrl(
+                                                            item.product,
+                                                        )}
                                                         alt={item.product.name}
                                                         className={`w-full h-full object-cover ${
-                                                            isOutOfStock ? "grayscale" : ""
+                                                            isOutOfStock
+                                                                ? "grayscale"
+                                                                : ""
                                                         }`}
                                                         onError={(e) => {
-                                                            e.target.src = "https://picsum.photos/id/20/400/300";
+                                                            e.target.src =
+                                                                "https://picsum.photos/id/20/400/300";
                                                         }}
                                                     />
                                                     {isOutOfStock && (
@@ -345,48 +373,80 @@ export default function CartIndex({
                                                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                                                         <div className="flex-1">
                                                             <Link
-                                                                href={`/product/${item.product.id}`}
+                                                                href={`/product/${item.product.slug}`}
                                                                 className={`text-base font-semibold ${
                                                                     isOutOfStock
                                                                         ? "text-gray-500 line-through"
                                                                         : "text-gray-900 hover:text-pamasoul-600"
                                                                 }`}
                                                             >
-                                                                {item.product.name}
+                                                                {
+                                                                    item.product
+                                                                        .name
+                                                                }
                                                             </Link>
                                                             <p className="text-sm text-gray-500">
-                                                                {item.product.category?.name}
+                                                                {
+                                                                    item.product
+                                                                        .category
+                                                                        ?.name
+                                                                }
                                                             </p>
 
                                                             {/* Stock Status */}
                                                             <div className="mt-2">
-                                                                {currentStock > 5 && (
+                                                                {currentStock >
+                                                                    5 && (
                                                                     <p className="text-xs text-green-600 flex items-center">
                                                                         <BoltIcon className="h-3 w-3 mr-1" />
-                                                                        In stock - ready to ship!
+                                                                        In stock
+                                                                        - ready
+                                                                        to ship!
                                                                     </p>
                                                                 )}
                                                                 {isLowStock && (
                                                                     <p className="text-xs text-yellow-600 flex items-center">
-                                                                        <span className="mr-1">⚠️</span>
-                                                                        Only {currentStock} left - order soon!
+                                                                        <span className="mr-1">
+                                                                            ⚠️
+                                                                        </span>
+                                                                        Only{" "}
+                                                                        {
+                                                                            currentStock
+                                                                        }{" "}
+                                                                        left -
+                                                                        order
+                                                                        soon!
                                                                     </p>
                                                                 )}
                                                                 {isOutOfStock && (
                                                                     <p className="text-xs text-red-600">
-                                                                        ✗ Out of stock - please remove
+                                                                        ✗ Out of
+                                                                        stock -
+                                                                        please
+                                                                        remove
                                                                     </p>
                                                                 )}
                                                             </div>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className={`text-lg font-bold ${
-                                                                isOutOfStock ? "text-gray-400 line-through" : "text-pamasoul-600"
-                                                            }`}>
-                                                                ₱{Number(item.price_snapshot).toLocaleString()}
+                                                            <p
+                                                                className={`text-lg font-bold ${
+                                                                    isOutOfStock
+                                                                        ? "text-gray-400 line-through"
+                                                                        : "text-pamasoul-600"
+                                                                }`}
+                                                            >
+                                                                ₱
+                                                                {Number(
+                                                                    item.price_snapshot,
+                                                                ).toLocaleString()}
                                                             </p>
                                                             <button
-                                                                onClick={() => removeItem(item.id)}
+                                                                onClick={() =>
+                                                                    removeItem(
+                                                                        item.id,
+                                                                    )
+                                                                }
                                                                 className="text-red-500 hover:text-red-700 mt-1 text-sm"
                                                             >
                                                                 <TrashIcon className="h-4 w-4 inline mr-1" />
@@ -398,10 +458,20 @@ export default function CartIndex({
                                                     <div className="flex items-center justify-between mt-4">
                                                         <div className="flex items-center space-x-2">
                                                             <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                                disabled={isOutOfStock}
+                                                                onClick={() =>
+                                                                    updateQuantity(
+                                                                        item.id,
+                                                                        item.quantity -
+                                                                            1,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    isOutOfStock
+                                                                }
                                                                 className={`w-8 h-8 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors ${
-                                                                    isOutOfStock ? "opacity-50 cursor-not-allowed" : ""
+                                                                    isOutOfStock
+                                                                        ? "opacity-50 cursor-not-allowed"
+                                                                        : ""
                                                                 }`}
                                                             >
                                                                 <MinusIcon className="h-4 w-4 mx-auto" />
@@ -410,24 +480,49 @@ export default function CartIndex({
                                                                 {item.quantity}
                                                             </span>
                                                             <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                                disabled={isOutOfStock || item.quantity >= currentStock}
+                                                                onClick={() =>
+                                                                    updateQuantity(
+                                                                        item.id,
+                                                                        item.quantity +
+                                                                            1,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    isOutOfStock ||
+                                                                    item.quantity >=
+                                                                        currentStock
+                                                                }
                                                                 className={`w-8 h-8 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors ${
-                                                                    isOutOfStock || item.quantity >= currentStock ? "opacity-50 cursor-not-allowed" : ""
+                                                                    isOutOfStock ||
+                                                                    item.quantity >=
+                                                                        currentStock
+                                                                        ? "opacity-50 cursor-not-allowed"
+                                                                        : ""
                                                                 }`}
                                                             >
                                                                 <PlusIcon className="h-4 w-4 mx-auto" />
                                                             </button>
                                                             {!isOutOfStock && (
                                                                 <span className="text-xs text-gray-500 ml-2">
-                                                                    {currentStock} available
+                                                                    {
+                                                                        currentStock
+                                                                    }{" "}
+                                                                    available
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className={`font-semibold text-lg ${
-                                                            isOutOfStock ? "text-gray-400" : "text-gray-900"
-                                                        }`}>
-                                                            ₱{(item.quantity * item.price_snapshot).toLocaleString()}
+                                                        <p
+                                                            className={`font-semibold text-lg ${
+                                                                isOutOfStock
+                                                                    ? "text-gray-400"
+                                                                    : "text-gray-900"
+                                                            }`}
+                                                        >
+                                                            ₱
+                                                            {(
+                                                                item.quantity *
+                                                                item.price_snapshot
+                                                            ).toLocaleString()}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -450,32 +545,50 @@ export default function CartIndex({
                         {/* Order Summary */}
                         <div className="lg:col-span-1">
                             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-                                <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
+                                <h2 className="text-lg font-bold text-gray-900 mb-4">
+                                    Order Summary
+                                </h2>
 
                                 <div className="space-y-3 pb-4">
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">
-                                            Subtotal ({selectedCount} {selectedCount === 1 ? "item" : "items"})
+                                            Subtotal ({selectedCount}{" "}
+                                            {selectedCount === 1
+                                                ? "item"
+                                                : "items"}
+                                            )
                                         </span>
                                         <span className="font-semibold">
-                                            {hasSelectedItems ? `₱${displaySubtotal.toLocaleString()}` : "₱0"}
+                                            {hasSelectedItems
+                                                ? `₱${displaySubtotal.toLocaleString()}`
+                                                : "₱0"}
                                         </span>
                                     </div>
-                                    
+
                                     <div className="flex justify-between">
-                                        <span className="text-gray-600">Shipping Fee</span>
+                                        <span className="text-gray-600">
+                                            Shipping Fee
+                                        </span>
                                         <div className="text-right">
                                             {!hasSelectedItems ? (
-                                                <span className="text-gray-400">₱0</span>
+                                                <span className="text-gray-400">
+                                                    ₱0
+                                                </span>
                                             ) : isFreeShipping ? (
                                                 <>
                                                     <span className="text-gray-400 line-through text-sm mr-2">
-                                                        ₱{baseFee.toLocaleString()}
+                                                        ₱
+                                                        {baseFee.toLocaleString()}
                                                     </span>
-                                                    <span className="text-green-600 font-semibold">FREE</span>
+                                                    <span className="text-green-600 font-semibold">
+                                                        FREE
+                                                    </span>
                                                 </>
                                             ) : (
-                                                <span className="font-semibold">₱{displayShippingFee.toLocaleString()}</span>
+                                                <span className="font-semibold">
+                                                    ₱
+                                                    {displayShippingFee.toLocaleString()}
+                                                </span>
                                             )}
                                         </div>
                                     </div>
@@ -487,9 +600,11 @@ export default function CartIndex({
                                             🚚 {shippingMessage.text}
                                         </p>
                                         <div className="mt-2 h-1.5 bg-blue-200 rounded-full overflow-hidden">
-                                            <div 
+                                            <div
                                                 className="h-full bg-pamasoul-600 rounded-full transition-all duration-300"
-                                                style={{ width: `${progressPercent}%` }}
+                                                style={{
+                                                    width: `${progressPercent}%`,
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -506,13 +621,16 @@ export default function CartIndex({
                                 {!hasSelectedItems && (
                                     <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                                         <p className="text-xs text-gray-500 text-center">
-                                            Select items to see shipping and total
+                                            Select items to see shipping and
+                                            total
                                         </p>
                                     </div>
                                 )}
 
                                 <div className="flex justify-between mt-4 pt-4 border-t">
-                                    <span className="text-base font-bold text-gray-900">Total</span>
+                                    <span className="text-base font-bold text-gray-900">
+                                        Total
+                                    </span>
                                     <span className="text-xl font-bold text-pamasoul-600">
                                         ₱{displayTotal.toLocaleString()}
                                     </span>
@@ -546,7 +664,8 @@ export default function CartIndex({
                                 </div>
 
                                 <p className="text-xs text-gray-400 text-center mt-4">
-                                    Only selected items will be included in checkout
+                                    Only selected items will be included in
+                                    checkout
                                 </p>
                             </div>
                         </div>

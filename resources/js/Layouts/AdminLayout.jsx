@@ -1,6 +1,6 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { useState } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import ApplicationLogo from "@/Components/ApplicationLogo";
+import { useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
 import {
     HomeIcon,
     ShoppingBagIcon,
@@ -11,15 +11,15 @@ import {
     ArrowRightOnRectangleIcon,
     Bars3Icon,
     XMarkIcon,
-} from '@heroicons/react/24/outline';
+} from "@heroicons/react/24/outline";
 
 const navigation = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
-    { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
-    { name: 'Categories', href: '/admin/categories', icon: TagIcon },
-    { name: 'Orders', href: '/admin/orders', icon: ShoppingCartIcon },
-    { name: 'Users', href: '/admin/users', icon: UsersIcon },
-    { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
+    { name: "Dashboard", href: "/admin/dashboard", icon: HomeIcon },
+    { name: "Products", href: "/admin/products", icon: ShoppingBagIcon },
+    { name: "Categories", href: "/admin/categories", icon: TagIcon },
+    { name: "Orders", href: "/admin/orders", icon: ShoppingCartIcon },
+    { name: "Users", href: "/admin/users", icon: UsersIcon },
+    { name: "Analytics", href: "/admin/analytics", icon: ChartBarIcon },
 ];
 
 export default function AdminLayout({ children }) {
@@ -28,18 +28,26 @@ export default function AdminLayout({ children }) {
     const user = usePage().props.auth.user;
 
     const isActive = (href) => {
-        return url === href || url.startsWith(href + '/');
+        // Remove query parameters from URL (everything after ?)
+        const currentPath = url.split("?")[0];
+        // Check exact match or if current path starts with href (for nested routes)
+        return (
+            currentPath === href ||
+            (href !== "/" && currentPath.startsWith(href + "/"))
+        );
     };
 
     // Consistent active link styling
     const getLinkClass = (active) => {
         return active
-            ? 'bg-pamasoul-600 text-white shadow-sm'
-            : 'text-gray-700 hover:bg-pamasoul-50 hover:text-pamasoul-600';
+            ? "bg-pamasoul-600 text-white shadow-sm"
+            : "text-gray-700 hover:bg-pamasoul-50 hover:text-pamasoul-600";
     };
 
     const getIconClass = (active) => {
-        return active ? 'text-white' : 'text-gray-400 group-hover:text-pamasoul-600';
+        return active
+            ? "text-white"
+            : "text-gray-400 group-hover:text-pamasoul-600";
     };
 
     return (
@@ -57,9 +65,14 @@ export default function AdminLayout({ children }) {
                 <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                     {/* Sidebar header */}
                     <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
-                        <Link href="/admin/dashboard" className="flex items-center space-x-2">
+                        <Link
+                            href="/admin/dashboard"
+                            className="flex items-center space-x-2"
+                        >
                             <ApplicationLogo className="h-8 w-8" />
-                            <span className="text-xl font-bold text-pamasoul-600">Pamasoul</span>
+                            <span className="text-xl font-bold text-pamasoul-600">
+                                Pamasoul
+                            </span>
                         </Link>
                     </div>
 
@@ -95,7 +108,9 @@ export default function AdminLayout({ children }) {
                                     {user?.name}
                                 </p>
                                 <p className="text-xs text-gray-500 truncate">
-                                    {user?.role === 'admin' ? 'Administrator' : 'Customer'}
+                                    {user?.role === "admin"
+                                        ? "Administrator"
+                                        : "Customer"}
                                 </p>
                             </div>
                             <Link
@@ -113,15 +128,22 @@ export default function AdminLayout({ children }) {
             </div>
 
             {/* Mobile sidebar - Same styling as desktop */}
-            <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out lg:hidden ${
-                sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}>
+            <div
+                className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out lg:hidden ${
+                    sidebarOpen ? "translate-x-0" : "-translate-x-full"
+                }`}
+            >
                 <div className="flex h-full flex-col">
                     {/* Sidebar header */}
                     <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
-                        <Link href="/admin/dashboard" className="flex items-center space-x-2">
+                        <Link
+                            href="/admin/dashboard"
+                            className="flex items-center space-x-2"
+                        >
                             <ApplicationLogo className="h-8 w-8" />
-                            <span className="text-xl font-bold text-pamasoul-600">Pamasoul</span>
+                            <span className="text-xl font-bold text-pamasoul-600">
+                                Pamasoul
+                            </span>
                         </Link>
                         <button
                             onClick={() => setSidebarOpen(false)}
@@ -164,7 +186,9 @@ export default function AdminLayout({ children }) {
                                     {user?.name}
                                 </p>
                                 <p className="text-xs text-gray-500 truncate">
-                                    {user?.role === 'admin' ? 'Administrator' : 'Customer'}
+                                    {user?.role === "admin"
+                                        ? "Administrator"
+                                        : "Customer"}
                                 </p>
                             </div>
                             <Link
@@ -194,7 +218,10 @@ export default function AdminLayout({ children }) {
 
                         <div className="flex items-center space-x-4 ml-auto lg:ml-0">
                             <span className="text-sm text-gray-500 hidden sm:block">
-                                Welcome back, <span className="font-medium text-gray-700">{user?.name}</span>
+                                Welcome back,{" "}
+                                <span className="font-medium text-gray-700">
+                                    {user?.name}
+                                </span>
                             </span>
                             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
                             <Link
@@ -208,9 +235,7 @@ export default function AdminLayout({ children }) {
                 </header>
 
                 {/* Page content */}
-                <main className="p-4 sm:p-6 lg:p-8">
-                    {children}
-                </main>
+                <main className="p-4 sm:p-6 lg:p-8">{children}</main>
             </div>
         </div>
     );

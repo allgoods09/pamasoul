@@ -7,15 +7,18 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Setting;
 use Carbon\Carbon;
 
 class OrderSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get shipping config values
-        $freeThreshold = config('shipping.free_threshold', 5000);
-        $baseFee = config('shipping.base_fee', 50);
+        // Get shipping config values from database settings
+        $freeThreshold = (float) Setting::get('shipping.free_threshold', 5000);
+        $baseFee = (float) Setting::get('shipping.base_fee', 50);
+        
+        $this->command->info("Using shipping settings - Free threshold: ₱{$freeThreshold}, Base fee: ₱{$baseFee}");
         
         $customers = User::where('role', 'customer')->get();
         $products = Product::all();
@@ -99,7 +102,7 @@ class OrderSeeder extends Seeder
                     ];
                 }
                 
-                // Calculate shipping using config
+                // Calculate shipping using database settings
                 $shippingFee = $subtotal >= $freeThreshold ? 0 : $baseFee;
                 $total = $subtotal + $shippingFee;
                 

@@ -1,9 +1,13 @@
-import CustomerLayout from '@/Layouts/CustomerLayout';
-import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
-import { ShoppingCartIcon, ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
-import ProductCard from '@/Components/ProductCard';
-import { getProductImageUrl } from '@/helpers/imageHelper';
+import CustomerLayout from "@/Layouts/CustomerLayout";
+import { Head, Link, router } from "@inertiajs/react";
+import { useState } from "react";
+import {
+    ShoppingCartIcon,
+    ArrowLeftIcon,
+    CheckIcon,
+} from "@heroicons/react/24/outline";
+import ProductCard from "@/Components/ProductCard";
+import { getProductImageUrl } from "@/helpers/imageHelper";
 
 export default function ProductShow({ product, relatedProducts }) {
     const [quantity, setQuantity] = useState(1);
@@ -24,22 +28,26 @@ export default function ProductShow({ product, relatedProducts }) {
 
     const handleAddToCart = () => {
         if (product.stock === 0) return;
-        
+
         setAdding(true);
-        router.post('/cart/add', {
-            product_id: product.id,
-            quantity: quantity,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setAdding(false);
-                setAdded(true);
-                setTimeout(() => setAdded(false), 2000);
+        router.post(
+            "/cart/add",
+            {
+                product_id: product.id,
+                quantity: quantity,
             },
-            onError: () => {
-                setAdding(false);
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAdding(false);
+                    setAdded(true);
+                    setTimeout(() => setAdded(false), 2000);
+                },
+                onError: () => {
+                    setAdding(false);
+                },
             },
-        });
+        );
     };
 
     return (
@@ -49,7 +57,10 @@ export default function ProductShow({ product, relatedProducts }) {
             <div className="bg-gray-50 min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Back Link */}
-                    <Link href="/shop" className="inline-flex items-center text-gray-600 hover:text-blue-600 mb-6">
+                    <Link
+                        href="/shop"
+                        className="inline-flex items-center text-gray-600 hover:text-blue-600 mb-6"
+                    >
                         <ArrowLeftIcon className="h-4 w-4 mr-1" />
                         Back to Shop
                     </Link>
@@ -64,7 +75,8 @@ export default function ProductShow({ product, relatedProducts }) {
                                     alt={product.name}
                                     className="w-full h-96 object-cover"
                                     onError={(e) => {
-                                        e.target.src = 'https://picsum.photos/id/20/400/300';
+                                        e.target.src =
+                                            "https://picsum.photos/id/20/400/300";
                                     }}
                                 />
                             </div>
@@ -82,18 +94,25 @@ export default function ProductShow({ product, relatedProducts }) {
 
                                 <div className="mb-4">
                                     <span className="text-3xl font-bold text-pamasoul-600">
-                                        ₱{Number(product.price).toLocaleString()}
+                                        ₱
+                                        {Number(product.price).toLocaleString()}
                                     </span>
                                 </div>
 
                                 <div className="mb-6">
                                     <div className="flex items-center space-x-2 mb-2">
-                                        <span className="text-sm font-medium text-gray-700">Availability:</span>
-                                        <span className={`text-sm font-semibold ${
-                                            product.stock > 5 ? 'text-green-600' :
-                                            product.stock > 0 ? 'text-yellow-600' :
-                                            'text-red-600'
-                                        }`}>
+                                        <span className="text-sm font-medium text-gray-700">
+                                            Availability:
+                                        </span>
+                                        <span
+                                            className={`text-sm font-semibold ${
+                                                product.stock > 5
+                                                    ? "text-green-600"
+                                                    : product.stock > 0
+                                                      ? "text-yellow-600"
+                                                      : "text-red-600"
+                                            }`}
+                                        >
                                             {product.stock_status}
                                         </span>
                                     </div>
@@ -102,11 +121,13 @@ export default function ProductShow({ product, relatedProducts }) {
                                             ✓ In stock - ready to ship!
                                         </p>
                                     )}
-                                    {product.stock > 0 && product.stock <= 5 && (
-                                        <p className="text-sm text-yellow-600">
-                                            ⚠️ Only {product.stock} left in stock - order soon!
-                                        </p>
-                                    )}
+                                    {product.stock > 0 &&
+                                        product.stock <= 5 && (
+                                            <p className="text-sm text-yellow-600">
+                                                ⚠️ Only {product.stock} left in
+                                                stock - order soon!
+                                            </p>
+                                        )}
                                     {product.stock === 0 && (
                                         <p className="text-sm text-red-600">
                                             ✗ Out of stock - check back later
@@ -115,9 +136,12 @@ export default function ProductShow({ product, relatedProducts }) {
                                 </div>
 
                                 <div className="mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                        Description
+                                    </h3>
                                     <p className="text-gray-600 leading-relaxed">
-                                        {product.description || 'No description available for this product.'}
+                                        {product.description ||
+                                            "No description available for this product."}
                                     </p>
                                 </div>
 
@@ -156,8 +180,8 @@ export default function ProductShow({ product, relatedProducts }) {
                                     disabled={product.stock === 0 || adding}
                                     className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg transition-colors ${
                                         product.stock > 0
-                                            ? 'bg-pamasoul-600 hover:bg-pamasoul-800 text-white'
-                                            : 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                            ? "bg-pamasoul-600 hover:bg-pamasoul-800 text-white"
+                                            : "bg-gray-300 cursor-not-allowed text-gray-500"
                                     }`}
                                 >
                                     {adding ? (
@@ -168,7 +192,11 @@ export default function ProductShow({ product, relatedProducts }) {
                                         <ShoppingCartIcon className="h-5 w-5" />
                                     )}
                                     <span>
-                                        {added ? 'Added to Cart!' : product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                                        {added
+                                            ? "Added to Cart!"
+                                            : product.stock > 0
+                                              ? "Add to Cart"
+                                              : "Out of Stock"}
                                     </span>
                                 </button>
                             </div>
@@ -178,14 +206,16 @@ export default function ProductShow({ product, relatedProducts }) {
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
                         <div className="mt-12">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                                You May Also Like
+                            </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {relatedProducts.map((relatedProduct) => (
                                     <ProductCard
                                         key={relatedProduct.id}
                                         product={relatedProduct}
                                         onAddToCart={() => {
-                                            router.post('/cart/add', {
+                                            router.post("/cart/add", {
                                                 product_id: relatedProduct.id,
                                                 quantity: 1,
                                             });

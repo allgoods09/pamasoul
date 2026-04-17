@@ -13,7 +13,7 @@ import {
     ClipboardDocumentListIcon,
     Cog6ToothIcon,
     ArrowRightOnRectangleIcon,
-    ShieldCheckIcon
+    ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import AdBanner from "@/Components/AdBanner";
 
@@ -39,7 +39,9 @@ export default function CustomerLayout({ children }) {
         if (!user?.name) return "?";
         const nameParts = user.name.trim().split(" ");
         if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
-        return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+        return (
+            nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
+        ).toUpperCase();
     };
 
     const freeThreshold = shippingConfig.free_threshold;
@@ -62,11 +64,13 @@ export default function CustomerLayout({ children }) {
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleCategoryClick = (categoryId) => {
-        router.get("/shop", { category: categoryId });
+    // UPDATED: Use slug instead of ID
+    const handleCategoryClick = (categorySlug) => {
+        router.get("/shop", { category: categorySlug });
     };
 
     const getCurrentCategory = () => {
@@ -81,11 +85,15 @@ export default function CustomerLayout({ children }) {
     };
 
     const isShopActive = () => {
-        return url === "/shop" || (url.startsWith("/shop") && !getCurrentCategory());
+        return (
+            url === "/shop" ||
+            (url.startsWith("/shop") && !getCurrentCategory())
+        );
     };
 
-    const isCategoryActive = (categoryId) => {
-        return getCurrentCategory() == categoryId;
+    // UPDATED: Compare slugs instead of IDs
+    const isCategoryActive = (categorySlug) => {
+        return getCurrentCategory() === categorySlug;
     };
 
     return (
@@ -97,7 +105,8 @@ export default function CustomerLayout({ children }) {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center">
                             <p className="hidden sm:block">
-                                🐟 Free shipping on orders over {formattedThreshold}!
+                                🐟 Free shipping on orders over{" "}
+                                {formattedThreshold}!
                             </p>
                             <p>🎣 Pamasoul - Premium Fishing Tackle</p>
                             <p className="hidden sm:block">
@@ -121,7 +130,7 @@ export default function CustomerLayout({ children }) {
                             </span>
                         </Link>
 
-                        {/* Desktop Navigation */}
+                        {/* Desktop Navigation - UPDATED with slugs */}
                         <nav className="hidden md:flex space-x-8">
                             <Link
                                 href="/"
@@ -144,9 +153,11 @@ export default function CustomerLayout({ children }) {
                                 Shop
                             </Link>
                             <button
-                                onClick={() => handleCategoryClick(1)}
+                                onClick={() =>
+                                    handleCategoryClick("fishing-rods")
+                                }
                                 className={`text-sm font-medium transition-colors py-1 ${
-                                    isCategoryActive(1)
+                                    isCategoryActive("fishing-rods")
                                         ? "text-pamasoul border-b-2 border-pamasoul-600"
                                         : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
                                 }`}
@@ -154,9 +165,11 @@ export default function CustomerLayout({ children }) {
                                 Rods
                             </button>
                             <button
-                                onClick={() => handleCategoryClick(2)}
+                                onClick={() =>
+                                    handleCategoryClick("fishing-lines")
+                                }
                                 className={`text-sm font-medium transition-colors py-1 ${
-                                    isCategoryActive(2)
+                                    isCategoryActive("fishing-lines")
                                         ? "text-pamasoul border-b-2 border-pamasoul-600"
                                         : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
                                 }`}
@@ -164,9 +177,9 @@ export default function CustomerLayout({ children }) {
                                 Lines
                             </button>
                             <button
-                                onClick={() => handleCategoryClick(3)}
+                                onClick={() => handleCategoryClick("reels")}
                                 className={`text-sm font-medium transition-colors py-1 ${
-                                    isCategoryActive(3)
+                                    isCategoryActive("reels")
                                         ? "text-pamasoul border-b-2 border-pamasoul-600"
                                         : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
                                 }`}
@@ -181,7 +194,9 @@ export default function CustomerLayout({ children }) {
                             <div className="w-5 h-5">
                                 {url === "/landing" && (
                                     <button
-                                        onClick={() => setSearchOpen(!searchOpen)}
+                                        onClick={() =>
+                                            setSearchOpen(!searchOpen)
+                                        }
                                         className="text-gray-600 hover:text-pamasoul-600"
                                     >
                                         <MagnifyingGlassIcon className="h-5 w-5" />
@@ -206,7 +221,11 @@ export default function CustomerLayout({ children }) {
                                 <div className="relative">
                                     <button
                                         ref={buttonRef}
-                                        onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                                        onClick={() =>
+                                            setUserDropdownOpen(
+                                                !userDropdownOpen,
+                                            )
+                                        }
                                         className="flex items-center space-x-2 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-pamasoul-500"
                                     >
                                         {/* Circle with initials */}
@@ -216,7 +235,9 @@ export default function CustomerLayout({ children }) {
                                             </span>
                                         </div>
                                         {/* Dropdown icon */}
-                                        <ChevronDownIcon className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDownIcon
+                                            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${userDropdownOpen ? "rotate-180" : ""}`}
+                                        />
                                     </button>
 
                                     {/* Dropdown Menu */}
@@ -228,7 +249,9 @@ export default function CustomerLayout({ children }) {
                                             {/* Profile Section */}
                                             <Link
                                                 href="/profile"
-                                                onClick={() => setUserDropdownOpen(false)}
+                                                onClick={() =>
+                                                    setUserDropdownOpen(false)
+                                                }
                                                 className="block p-5 text-center hover:bg-gray-50 transition-colors border-b border-gray-100"
                                             >
                                                 {/* Large circle with initials */}
@@ -251,7 +274,11 @@ export default function CustomerLayout({ children }) {
                                             <div className="py-2">
                                                 <Link
                                                     href="/my-orders"
-                                                    onClick={() => setUserDropdownOpen(false)}
+                                                    onClick={() =>
+                                                        setUserDropdownOpen(
+                                                            false,
+                                                        )
+                                                    }
                                                     className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                                 >
                                                     <ClipboardDocumentListIcon className="h-5 w-5 mr-3 text-gray-400" />
@@ -259,29 +286,41 @@ export default function CustomerLayout({ children }) {
                                                 </Link>
                                                 <Link
                                                     href="/profile"
-                                                    onClick={() => setUserDropdownOpen(false)}
+                                                    onClick={() =>
+                                                        setUserDropdownOpen(
+                                                            false,
+                                                        )
+                                                    }
                                                     className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                                 >
                                                     <UserCircleIcon className="h-5 w-5 mr-3 text-gray-400" />
                                                     Profile Settings
                                                 </Link>
-                                                
+
                                                 {user.role === "admin" && (
                                                     <Link
                                                         href="/admin/dashboard"
-                                                        onClick={() => setUserDropdownOpen(false)}
+                                                        onClick={() =>
+                                                            setUserDropdownOpen(
+                                                                false,
+                                                            )
+                                                        }
                                                         className="flex items-center px-4 py-2.5 text-sm text-pamasoul-600 hover:bg-gray-50 transition-colors border-t border-gray-100 mt-1"
                                                     >
                                                         <ShieldCheckIcon className="h-5 w-5 mr-3" />
                                                         Admin Panel
                                                     </Link>
                                                 )}
-                                                
+
                                                 <Link
                                                     href="/logout"
                                                     method="post"
                                                     as="button"
-                                                    onClick={() => setUserDropdownOpen(false)}
+                                                    onClick={() =>
+                                                        setUserDropdownOpen(
+                                                            false,
+                                                        )
+                                                    }
                                                     className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 mt-1"
                                                 >
                                                     <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3" />
@@ -324,7 +363,11 @@ export default function CustomerLayout({ children }) {
                 {searchOpen && (
                     <div className="border-t border-gray-200 py-4 px-4 bg-white">
                         <div className="max-w-7xl mx-auto">
-                            <form action="/shop" method="GET" className="relative">
+                            <form
+                                action="/shop"
+                                method="GET"
+                                className="relative"
+                            >
                                 <input
                                     type="text"
                                     name="search"
@@ -332,9 +375,16 @@ export default function CustomerLayout({ children }) {
                                     className="w-full rounded-lg border-gray-300 pr-12 focus:border-pamasoul-500 focus:ring-pamasoul-500 text-gray-900 placeholder-gray-400"
                                 />
                                 {getCurrentCategory() && (
-                                    <input type="hidden" name="category" value={getCurrentCategory()} />
+                                    <input
+                                        type="hidden"
+                                        name="category"
+                                        value={getCurrentCategory()}
+                                    />
                                 )}
-                                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <button
+                                    type="submit"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                                >
                                     <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
                                 </button>
                             </form>
@@ -343,7 +393,7 @@ export default function CustomerLayout({ children }) {
                 )}
             </header>
 
-            {/* Mobile menu sidebar */}
+            {/* Mobile menu sidebar - UPDATED with slugs */}
             {mobileMenuOpen && (
                 <>
                     <div
@@ -352,7 +402,9 @@ export default function CustomerLayout({ children }) {
                     />
                     <div className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg">
                         <div className="flex justify-between items-center p-4 border-b">
-                            <span className="font-bold text-gray-900">Menu</span>
+                            <span className="font-bold text-gray-900">
+                                Menu
+                            </span>
                             <button onClick={() => setMobileMenuOpen(false)}>
                                 <XMarkIcon className="h-6 w-6 text-gray-600" />
                             </button>
@@ -362,7 +414,9 @@ export default function CustomerLayout({ children }) {
                                 href="/"
                                 onClick={() => setMobileMenuOpen(false)}
                                 className={`block py-2 text-base font-medium ${
-                                    isActive("/") ? "text-pamasoul-600" : "text-gray-700"
+                                    isActive("/")
+                                        ? "text-pamasoul-600"
+                                        : "text-gray-700"
                                 }`}
                             >
                                 Home
@@ -371,40 +425,48 @@ export default function CustomerLayout({ children }) {
                                 href="/shop"
                                 onClick={() => setMobileMenuOpen(false)}
                                 className={`block py-2 text-base font-medium ${
-                                    isShopActive() ? "text-pamasoul-600" : "text-gray-700"
+                                    isShopActive()
+                                        ? "text-pamasoul-600"
+                                        : "text-gray-700"
                                 }`}
                             >
                                 Shop
                             </Link>
                             <button
                                 onClick={() => {
-                                    handleCategoryClick(1);
+                                    handleCategoryClick("fishing-rods");
                                     setMobileMenuOpen(false);
                                 }}
                                 className={`block w-full text-left py-2 text-base font-medium ${
-                                    isCategoryActive(1) ? "text-pamasoul-600" : "text-gray-700"
+                                    isCategoryActive("fishing-rods")
+                                        ? "text-pamasoul-600"
+                                        : "text-gray-700"
                                 }`}
                             >
                                 Rods
                             </button>
                             <button
                                 onClick={() => {
-                                    handleCategoryClick(2);
+                                    handleCategoryClick("fishing-lines");
                                     setMobileMenuOpen(false);
                                 }}
                                 className={`block w-full text-left py-2 text-base font-medium ${
-                                    isCategoryActive(2) ? "text-pamasoul-600" : "text-gray-700"
+                                    isCategoryActive("fishing-lines")
+                                        ? "text-pamasoul-600"
+                                        : "text-gray-700"
                                 }`}
                             >
                                 Lines
                             </button>
                             <button
                                 onClick={() => {
-                                    handleCategoryClick(3);
+                                    handleCategoryClick("reels");
                                     setMobileMenuOpen(false);
                                 }}
                                 className={`block w-full text-left py-2 text-base font-medium ${
-                                    isCategoryActive(3) ? "text-pamasoul-600" : "text-gray-700"
+                                    isCategoryActive("reels")
+                                        ? "text-pamasoul-600"
+                                        : "text-gray-700"
                                 }`}
                             >
                                 Reels
@@ -415,14 +477,18 @@ export default function CustomerLayout({ children }) {
                                         <Link
                                             href="/my-orders"
                                             className="block py-2 text-gray-700"
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
                                         >
                                             My Orders
                                         </Link>
                                         <Link
                                             href="/profile"
                                             className="block py-2 text-gray-700"
-                                            onClick={() => setMobileMenuOpen(false)}
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
                                         >
                                             Profile
                                         </Link>
@@ -430,7 +496,9 @@ export default function CustomerLayout({ children }) {
                                             <Link
                                                 href="/admin/dashboard"
                                                 className="block py-2 text-pamasoul-600"
-                                                onClick={() => setMobileMenuOpen(false)}
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
                                             >
                                                 Admin Panel
                                             </Link>
@@ -468,8 +536,8 @@ export default function CustomerLayout({ children }) {
                             currentPage === "home" || currentPage === "landing"
                                 ? "top-[56vh]"
                                 : currentPage === "other"
-                                ? "top-32"
-                                : "top-[280px]"
+                                  ? "top-32"
+                                  : "top-[280px]"
                         }`}
                     >
                         <AdBanner
@@ -488,8 +556,8 @@ export default function CustomerLayout({ children }) {
                             currentPage === "home" || currentPage === "landing"
                                 ? "top-[56vh]"
                                 : currentPage === "other"
-                                ? "top-32"
-                                : "top-[280px]"
+                                  ? "top-32"
+                                  : "top-[280px]"
                         }`}
                     >
                         <AdBanner
@@ -508,44 +576,153 @@ export default function CustomerLayout({ children }) {
             <footer className="bg-pamasoul-dark text-white mt-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        {/* Brand Column */}
                         <div>
                             <div className="flex items-center space-x-2 mb-4">
-                                <ApplicationLogo variant="light" className="h-8 w-auto" />
-                                <span className="text-xl font-bold">Pamasoul</span>
+                                <ApplicationLogo
+                                    variant="light"
+                                    className="h-8 w-auto"
+                                />
+                                <span className="text-xl font-bold">
+                                    Pamasoul
+                                </span>
                             </div>
                             <p className="text-gray-400 text-sm">
-                                Premium fishing tackle for the passionate angler. Quality gear for every fishing adventure.
+                                Premium fishing tackle for the passionate
+                                angler. Quality gear for every fishing
+                                adventure.
                             </p>
                         </div>
+
+                        {/* Quick Links Column */}
                         <div>
-                            <h3 className="font-semibold mb-4 text-white">Quick Links</h3>
+                            <h3 className="font-semibold mb-4 text-white">
+                                Quick Links
+                            </h3>
                             <ul className="space-y-2 text-sm text-gray-400">
-                                <li><Link href="/shop" className="hover:text-white">Shop All</Link></li>
-                                <li><button onClick={() => handleCategoryClick(1)} className="hover:text-white">Fishing Rods</button></li>
-                                <li><button onClick={() => handleCategoryClick(2)} className="hover:text-white">Fishing Lines</button></li>
-                                <li><button onClick={() => handleCategoryClick(3)} className="hover:text-white">Reels</button></li>
+                                <li>
+                                    <Link
+                                        href="/shop"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Shop All
+                                    </Link>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={() =>
+                                            handleCategoryClick("fishing-rods")
+                                        }
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Fishing Rods
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={() =>
+                                            handleCategoryClick("fishing-lines")
+                                        }
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Fishing Lines
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={() =>
+                                            handleCategoryClick("reels")
+                                        }
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Reels
+                                    </button>
+                                </li>
                             </ul>
                         </div>
+
+                        {/* Customer Service Column - UPDATED with new pages */}
                         <div>
-                            <h3 className="font-semibold mb-4 text-white">Customer Service</h3>
+                            <h3 className="font-semibold mb-4 text-white">
+                                Customer Service
+                            </h3>
                             <ul className="space-y-2 text-sm text-gray-400">
-                                <li><Link href="/my-orders" className="hover:text-white">My Orders</Link></li>
-                                <li><Link href="/cart" className="hover:text-white">Shopping Cart</Link></li>
-                                <li><Link href="/my-orders" className="hover:text-white">Shipping Info</Link></li>
-                                <li><Link href="#" className="hover:text-white">Returns Policy</Link></li>
+                                <li>
+                                    <Link
+                                        href="/my-orders"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        My Orders
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        href="/cart"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Shopping Cart
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        href="/support"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Customer Support
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        href="/policies"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Store Policies
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        href="/about"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        About Us
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
+
+                        {/* Contact Column */}
                         <div>
-                            <h3 className="font-semibold mb-4 text-white">Contact Us</h3>
+                            <h3 className="font-semibold mb-4 text-white">
+                                Contact Us
+                            </h3>
                             <ul className="space-y-2 text-sm text-gray-400">
-                                <li>📞 (+63) 9389317261</li>
-                                <li>✉️ support@pamasoul.com</li>
-                                <li>📍 Tubigon, Bohol, Philippines</li>
+                                <li className="flex items-center space-x-2">
+                                    <span>📞</span>
+                                    <span>(+63) 9389317261</span>
+                                </li>
+                                <li className="flex items-center space-x-2">
+                                    <span>✉️</span>
+                                    <a
+                                        href="mailto:support@pamasoul.com"
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        support@pamasoul.com
+                                    </a>
+                                </li>
+                                <li className="flex items-center space-x-2">
+                                    <span>📍</span>
+                                    <span>Tubigon, Bohol, Philippines</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
+
+                    {/* Copyright */}
                     <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-                        <p>&copy; {new Date().getFullYear()} Pamasoul Fishing Tackle. All rights reserved.</p>
+                        <p>
+                            &copy; {new Date().getFullYear()} Pamasoul Fishing
+                            Tackle. All rights reserved.
+                        </p>
                     </div>
                 </div>
             </footer>

@@ -4,6 +4,8 @@ use App\Http\Controllers\Customer\ShopController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\OrderController;
+use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +20,7 @@ use App\Http\Controllers\Customer\OrderController;
 // Anyone can browse products
 Route::get('/landing', [ShopController::class, 'landing'])->name('landing');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
-Route::get('/product/{product}', [ShopController::class, 'show'])->name('shop.show');
+Route::get('/product/{product:slug}', [ShopController::class, 'show'])->name('shop.show');
 
 // ==================== PROTECTED ROUTES (Login Required) ====================
 Route::middleware(['auth'])->group(function () {

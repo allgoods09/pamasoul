@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('status', ['Pending', 'Paid', 'Shipped', 'Completed'])->default('Pending');
             $table->decimal('total', 10, 2);
+            $table->decimal('shipping_fee', 10, 2)->default(0);
             $table->enum('payment_method', ['COD', 'BankTransfer']);
             $table->text('shipping_address');
             $table->timestamps();

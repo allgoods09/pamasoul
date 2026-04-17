@@ -20,9 +20,9 @@ export default function ShopIndex({ products, categories, filters }) {
     // Get current category from URL
     const getCurrentCategory = () => {
         const params = new URLSearchParams(window.location.search);
-        const categoryId = params.get("category");
-        if (categoryId) {
-            return categoriesList.find((c) => c.id == categoryId);
+        const categorySlug = params.get("category");
+        if (categorySlug) {
+            return categoriesList.find((c) => c.slug === categorySlug);
         }
         return null;
     };
@@ -40,7 +40,7 @@ export default function ShopIndex({ products, categories, filters }) {
             };
         }
 
-        switch (currentCategory.id) {
+        switch (currentCategory.slug) {
             case 1:
                 return {
                     title: "Fishing Rods",
@@ -75,10 +75,10 @@ export default function ShopIndex({ products, categories, filters }) {
 
     // 🖼️ BACKGROUND IMAGES - FILL IN YOUR IMGUR/IMGBB LINKS HERE
     const categoryBackgrounds = {
-        1: "../images/rodbanner.jpg", // Fishing Rods background image URL
-        2: "../images/linebanner.jpg", // Fishing Lines background image URL
-        3: "../images/reelbanner.jpg", // Fishing Reels background image URL
-        default: "../images/defaultbanner.jpg", // Shop All / Default background image URL
+        "fishing-rods": "/images/rodbanner.jpg",
+        "fishing-lines": "/images/linebanner.jpg",
+        reels: "/images/reelbanner.jpg",
+        default: "/images/defaultbanner.jpg",
     };
 
     // 🔍 DYNAMIC SEARCH PLACEHOLDERS PER CATEGORY
@@ -107,7 +107,7 @@ export default function ShopIndex({ products, categories, filters }) {
             return categoryBackgrounds.default;
         }
         return (
-            categoryBackgrounds[currentCategory.id] ||
+            categoryBackgrounds[currentCategory.slug] ||
             categoryBackgrounds.default
         );
     };
@@ -287,7 +287,7 @@ export default function ShopIndex({ products, categories, filters }) {
                         >
                             <option value="">All Categories</option>
                             {categoriesList.map((cat) => (
-                                <option key={cat.id} value={cat.id}>
+                                <option key={cat.slug} value={cat.slug}>
                                     {cat.name}
                                 </option>
                             ))}
@@ -359,7 +359,7 @@ export default function ShopIndex({ products, categories, filters }) {
                                 >
                                     <option value="">All Categories</option>
                                     {categoriesList.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
+                                        <option key={cat.slug} value={cat.slug}>
                                             {cat.name}
                                         </option>
                                     ))}
@@ -375,6 +375,7 @@ export default function ShopIndex({ products, categories, filters }) {
                                     defaultValue={filters?.sort || "latest"}
                                     onChange={applyFilters}
                                     className="w-full px-4 py-2 border rounded-lg"
+                                    key={filters?.sort || "latest"} // ← ADD THIS - forces re-render
                                 >
                                     <option value="latest">Latest</option>
                                     <option value="price_low">
@@ -438,7 +439,7 @@ export default function ShopIndex({ products, categories, filters }) {
                             {productsData.map((product) => (
                                 <Link
                                     key={product.id}
-                                    href={`/product/${product.id}`}
+                                    href={`/product/${product.slug}`}
                                 >
                                     <div
                                         key={product.id}
@@ -449,24 +450,24 @@ export default function ShopIndex({ products, categories, filters }) {
                                             <img
                                                 src={getProductImageUrl(
                                                     product,
-                                                        "medium",
-                                                    )}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    loading="lazy"
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src =
-                                                            "https://picsum.photos/id/20/400/300";
-                                                    }}
-                                                />
-                                            </div>
+                                                    "medium",
+                                                )}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                loading="lazy"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src =
+                                                        "https://picsum.photos/id/20/400/300";
+                                                }}
+                                            />
+                                        </div>
                                         {/* Product Info */}
                                         <div className="p-4">
                                             {/* Clickable Title */}
-                                                <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-1">
-                                                    {product.name}
-                                                </h3>
+                                            <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-1">
+                                                {product.name}
+                                            </h3>
                                             <p className="text-sm text-gray-500 mb-2">
                                                 {product.category?.name}
                                             </p>

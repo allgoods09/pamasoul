@@ -102,6 +102,7 @@ class CheckoutController extends Controller
                 'user_id' => $user->id,
                 'status' => 'Pending',
                 'total' => $total,
+                'shipping_fee' => $shippingFee,
                 'payment_method' => $request->payment_method,
                 'shipping_address' => $request->shipping_address,
             ]);

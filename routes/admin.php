@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\UserController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,8 @@ Route::resource('orders', OrderController::class)->only(['index', 'show']);
 Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 Route::post('/orders/bulk-update-status', [OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
 Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
+Route::post('/orders/{order}/send-email', [OrderController::class, 'sendStatusEmail'])->name('admin.orders.send-email');
+Route::post('/orders/shipping-settings', [OrderController::class, 'updateShippingSettings'])->name('admin.orders.shipping-settings');
 
 // ==================== ANALYTICS ====================
 Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');

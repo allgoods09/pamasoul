@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
+
 abstract class Controller
 {
     /**
@@ -12,8 +14,8 @@ abstract class Controller
      */
     protected function calculateShipping($subtotal)
     {
-        $freeThreshold = config('shipping.free_threshold');
-        $baseFee = config('shipping.base_fee');
+        $freeThreshold = (float) Setting::get('shipping.free_threshold', 5000);
+        $baseFee = (float) Setting::get('shipping.base_fee', 50);
         
         if ($subtotal >= $freeThreshold) {
             return 0;
@@ -30,8 +32,8 @@ abstract class Controller
     protected function getShippingConfig()
     {
         return [
-            'free_threshold' => config('shipping.free_threshold'),
-            'base_fee' => config('shipping.base_fee'),
+            'free_threshold' => (float) Setting::get('shipping.free_threshold', 5000),
+            'base_fee' => (float) Setting::get('shipping.base_fee', 50),
         ];
     }
 }
