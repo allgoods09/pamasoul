@@ -133,13 +133,13 @@ export default function OrdersIndex({ orders, statusCounts, filters }) {
                                 <span className="ml-2 inline-flex h-2 w-2 rounded-full bg-pamasoul-600" />
                             )}
                         </button>
-                        <button
+                        {/* <button
                             onClick={() => router.get('/admin/orders/export')}
                             className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
                         >
                             <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
                             Export
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
