@@ -30,48 +30,49 @@ export default function Landing({ featuredProducts, categories }) {
             <Head title="Pamasoul - Premium Fishing Tackle" />
 
             {/* Hero Section */}
-            <section className="relative text-white">
-                {/* Background Image with CSS fallback */}
-                <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{
-                        backgroundImage: `url('../images/herobanner.jpg')`,
-                        backgroundColor: "#1e3a8a", // Fallback blue color
-                    }}
-                >
-                    {/* Gradient overlay for better text readability */}
-                    <div className="absolute inset-0 bg-black/20"></div>
-                </div>
+<section className="relative text-white min-h-[500px] md:min-h-[600px] flex items-center">
+    {/* Background Image */}
+    <div
+        className="absolute inset-0"
+        style={{
+            backgroundImage: `url('/images/herobanner.jpg')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundColor: "#1e3a8a",
+        }}
+    >
+        <div className="absolute inset-0 bg-black/20"></div>
+    </div>
 
-                {/* Content */}
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-                    <div className="max-w-2xl">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                            Premium Fishing Tackle for the Passionate Angler
-                        </h1>
-                        <p className="text-lg md:text-xl mb-8 text-blue-100">
-                            Quality rods, reels, and lines for every fishing
-                            adventure. Gear up with Pamasoul and catch the big
-                            one!
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Link
-                                href="/shop"
-                                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-400 text-light hover:text-black font-semibold rounded-lg transition-colors"
-                            >
-                                Shop Now
-                                <ArrowRightIcon className="ml-2 h-5 w-5" />
-                            </Link>
-                            <Link
-                                href="#featured"
-                                className="inline-flex items-center justify-center px-6 py-3 border border-white hover:bg-white/10 font-semibold rounded-lg transition-colors"
-                            >
-                                View Collections
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
+    {/* Content */}
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="max-w-2xl">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-white">
+                Premium Fishing Tackle for the Passionate Angler
+            </h1>
+            <p className="text-base md:text-xl mb-8 text-blue-100">
+                Quality rods, reels, and lines for every fishing
+                adventure. Gear up with Pamasoul and catch the big
+                one!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                    href="/shop"
+                    className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors"
+                >
+                    Shop Now
+                    <ArrowRightIcon className="ml-2 h-5 w-5" />
+                </Link>
+                <Link
+                    href="#featured"
+                    className="inline-flex items-center justify-center px-6 py-3 border border-white hover:bg-white/10 font-semibold rounded-lg transition-colors text-white"
+                >
+                    View Collections
+                </Link>
+            </div>
+        </div>
+    </div>
+</section>
 
             {/* Category Highlights */}
             <section className="py-16 bg-white">

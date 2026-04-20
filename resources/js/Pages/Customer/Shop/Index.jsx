@@ -316,7 +316,7 @@ export default function ShopIndex({ products, categories, filters }) {
                                 type="number"
                                 placeholder="Min Price"
                                 defaultValue={filters?.min_price || ""}
-                                className="w-28 px-3 py-2 border rounded-lg"
+                                className="w-40 px-3 py-2 border rounded-lg"  // ← Changed from w-28 to w-40
                             />
                             <span>-</span>
                             <input
@@ -324,7 +324,7 @@ export default function ShopIndex({ products, categories, filters }) {
                                 type="number"
                                 placeholder="Max Price"
                                 defaultValue={filters?.max_price || ""}
-                                className="w-28 px-3 py-2 border rounded-lg"
+                                className="w-40 px-3 py-2 border rounded-lg"  // ← Changed from w-28 to w-40
                             />
                             <button
                                 onClick={applyFilters}
@@ -397,28 +397,28 @@ export default function ShopIndex({ products, categories, filters }) {
                                 <label className="block text-sm font-medium mb-1">
                                     Price Range
                                 </label>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1 sm:gap-2 w-full">
                                     <input
                                         ref={minPriceRef}
                                         type="number"
                                         placeholder="Min"
                                         defaultValue={filters?.min_price || ""}
-                                        className="flex-1 px-3 py-2 border rounded-lg"
+                                        className="w-1/2 sm:flex-1 px-2 sm:px-4 py-2 border rounded-lg text-sm"
                                     />
-                                    <span className="self-center">-</span>
+                                    <span className="text-gray-500 self-center">-</span>
                                     <input
                                         ref={maxPriceRef}
                                         type="number"
                                         placeholder="Max"
                                         defaultValue={filters?.max_price || ""}
-                                        className="flex-1 px-3 py-2 border rounded-lg"
+                                        className="w-1/2 sm:flex-1 px-2 sm:px-4 py-2 border rounded-lg text-sm"
                                     />
                                 </div>
                             </div>
 
                             <button
                                 onClick={applyFilters}
-                                className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                className="w-full py-2 bg-pamasoul-600 text-white rounded-lg hover:bg-pamasoul-800"
                             >
                                 Apply Filters
                             </button>
