@@ -15,6 +15,7 @@ class OrderItem extends Model
         'product_id',
         'quantity',
         'price_snapshot',
+        'product_name',
     ];
 
     protected $casts = [
@@ -41,6 +42,6 @@ class OrderItem extends Model
 
     public function getFormattedSubtotalAttribute(): string
     {
-        return '₱' . number_format($this->subtotal, 2);
+        return '₱'.number_format($this->subtotal, 2);
     }
 }

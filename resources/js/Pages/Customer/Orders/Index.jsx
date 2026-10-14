@@ -1,12 +1,12 @@
 import CustomerLayout from '@/Layouts/CustomerLayout';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    EyeIcon, 
-    TruckIcon, 
-    CurrencyDollarIcon, 
+import {
+    EyeIcon,
+    TruckIcon,
+    CurrencyDollarIcon,
     CalendarIcon,
     ShoppingBagIcon,
-    ChevronRightIcon 
+    ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { getProductImageUrl } from '@/helpers/imageHelper';
 
@@ -93,7 +93,7 @@ export default function OrdersIndex({ orders }) {
                                 const status = statusColors[order.status] || statusColors.Pending;
                                 const itemCount = order.items?.length || 0;
                                 const firstItems = order.items?.slice(0, 2) || [];
-                                
+
                                 return (
                                     <div key={order.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                                         {/* Order Header */}
@@ -102,16 +102,16 @@ export default function OrdersIndex({ orders }) {
                                                 <div className="flex items-center space-x-4">
                                                     <div className="flex items-center space-x-2">
                                                         <ShoppingBagIcon className="h-5 w-5 text-gray-400" />
-                                                        <span className="font-semibold text-gray-900">Order #{order.id}</span>
+                                                        <span className="font-semibold text-gray-900">Order {order.reference || `#${order.id}`}</span>
                                                     </div>
                                                     <div className="h-4 w-px bg-gray-300 hidden sm:block" />
                                                     <div className="flex items-center space-x-2">
                                                         <CalendarIcon className="h-4 w-4 text-gray-400" />
                                                         <span className="text-sm text-gray-600">
-                                                            {new Date(order.created_at).toLocaleDateString('en-US', { 
-                                                                year: 'numeric', 
-                                                                month: 'long', 
-                                                                day: 'numeric' 
+                                                            {new Date(order.created_at).toLocaleDateString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'long',
+                                                                day: 'numeric'
                                                             })}
                                                         </span>
                                                     </div>
@@ -122,7 +122,7 @@ export default function OrdersIndex({ orders }) {
                                                         <span>{order.status}</span>
                                                     </span>
                                                     <Link
-                                                        href={`/my-orders/${order.id}`}                                                        
+                                                        href={`/my-orders/${order.id}`}
                                                         className="inline-flex items-center text-pamasoul-600 hover:text-pamasoul-800 font-medium"
                                                     >
                                                         View Details
@@ -140,17 +140,18 @@ export default function OrdersIndex({ orders }) {
                                                     <div key={item.id} className="flex items-center justify-between">
                                                         <div className="flex items-center space-x-3 flex-1">
                                                             <div className="h-12 w-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                                                <img 
+                                                                <img
                                                                     src={getProductImageUrl(item.product)}
-                                                                    alt={item.product.name}
+                                                                    alt={item.product_name || item.product.name}
                                                                     className="h-full w-full object-cover"
                                                                     onError={(e) => {
-                                                                        e.target.src = 'https://picsum.photos/id/20/100/100';
+                                                                        e.target.onerror = null;
+                                                                        e.target.src = '/images/product-placeholder.svg';
                                                                     }}
                                                                 />
                                                             </div>
                                                             <div className="flex-1">
-                                                                <p className="text-sm font-medium text-gray-900">{item.product.name}</p>
+                                                                <p className="text-sm font-medium text-gray-900">{item.product_name || item.product.name}</p>
                                                                 <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                                                             </div>
                                                         </div>
@@ -161,7 +162,7 @@ export default function OrdersIndex({ orders }) {
                                                         </div>
                                                     </div>
                                                 ))}
-                                                
+
                                                 {itemCount > 2 && (
                                                     <p className="text-sm text-gray-500 text-center pt-2">
                                                         + {itemCount - 2} more item(s)
@@ -175,7 +176,7 @@ export default function OrdersIndex({ orders }) {
                                                     <div className="flex items-center space-x-1">
                                                         <TruckIcon className="h-4 w-4 text-gray-400" />
                                                         <span className="text-gray-600">
-                                                            {order.shipping_fee > 0 ? `₱${order.shipping_fee.toLocaleString()} shipping` : 'Free Shipping'}
+                                                            {order.shipping_fee > 0 ? `₱${Number(order.shipping_fee).toLocaleString()} shipping` : 'Free Shipping'}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center space-x-1">

@@ -1,258 +1,374 @@
 import CustomerLayout from "@/Layouts/CustomerLayout";
 import { Head, Link } from "@inertiajs/react";
-import { ShoppingCartIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
-import { getProductImageUrl } from "@/helpers/imageHelper";
-
-export default function Landing({ featuredProducts, categories }) {
-    const getCategoryImage = (category) => {
-        // Find a product in this category
-        const sampleProduct = featuredProducts.find(
-            (p) => p.category_id === category.id,
-        );
-
-        // If found, return its image URL
-        if (sampleProduct && sampleProduct.image) {
-            return sampleProduct.image;
+import {
+    ArrowRightIcon,
+    ArrowDownIcon,
+    TruckIcon,
+    ShieldCheckIcon,
+    ChatBubbleLeftRightIcon,
+} from "@heroicons/react/24/outline";
+import ProductCard from "@/Components/ProductCard";
+import ProductImage from "@/Components/ProductImage";
+import Reveal from "@/Components/Motion/Reveal";
+import usePointerMotion from "@/hooks/usePointerMotion";
+import { useMotion } from "@/Components/Motion/MotionProvider";
+import { useEffect, useRef } from "react";
+const collectionArt = {
+    "fishing-rods": "/images/rodbanner.jpg",
+    reels: "/images/reelbanner.jpg",
+    "fishing-lines": "/images/linebanner.jpg",
+};
+const collectionCopy = {
+    "fishing-rods": "Feel every bite. Make every cast count.",
+    reels: "Smooth retrieves. Serious pulling power.",
+    "fishing-lines": "Your strongest connection to the water.",
+};
+export default function Landing({ featuredProducts = [], categories = [] }) {
+    const pointerRef = usePointerMotion();
+    const photoRef = useRef(null);
+    const { mode, reduced } = useMotion();
+    const reel = featuredProducts.find((p) => p.category?.slug === "reels");
+    useEffect(() => {
+        if (mode !== "bold" || reduced) {
+            photoRef.current?.style.removeProperty("translate");
+            return;
         }
-
-        // Fallback gradients based on category
-        const fallbacks = {
-            1: "from-blue-600 to-blue-800", // Rods
-            2: "from-green-600 to-green-800", // Lines
-            3: "from-purple-600 to-purple-800", // Reels
+        let frame = 0;
+        const update = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                if (!pointerRef.current || !photoRef.current) return;
+                const rect = pointerRef.current.getBoundingClientRect();
+                if (rect.bottom > 0 && rect.top < window.innerHeight)
+                    photoRef.current.style.translate = `0 ${Math.min(100, Math.max(0, -rect.top * 0.16))}px`;
+            });
         };
-
-        return fallbacks[category.id] || "from-blue-600 to-blue-800";
-    };
-
+        window.addEventListener("scroll", update, { passive: true });
+        update();
+        return () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener("scroll", update);
+        };
+    }, [mode, reduced, pointerRef]);
     return (
         <CustomerLayout>
-            <Head title="Pamasoul - Premium Fishing Tackle" />
-
-            {/* Hero Section */}
-<section className="relative text-white min-h-[500px] md:min-h-[600px] flex items-center">
-    {/* Background Image */}
-    <div
-        className="absolute inset-0"
-        style={{
-            backgroundImage: `url('/images/herobanner.jpg')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundColor: "#1e3a8a",
-        }}
-    >
-        <div className="absolute inset-0 bg-black/20"></div>
-    </div>
-
-    {/* Content */}
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="max-w-2xl">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-white">
-                Premium Fishing Tackle for the Passionate Angler
-            </h1>
-            <p className="text-base md:text-xl mb-8 text-blue-100">
-                Quality rods, reels, and lines for every fishing
-                adventure. Gear up with Pamasoul and catch the big
-                one!
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                    href="/shop"
-                    className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors"
+            <Head title="PamaSoul · Fishing is in our soul" />
+            <section
+                ref={pointerRef}
+                className="hero-scene relative overflow-hidden text-white"
+            >
+                <div
+                    ref={photoRef}
+                    className="hero-photo absolute inset-0"
+                    aria-hidden="true"
                 >
-                    Shop Now
-                    <ArrowRightIcon className="ml-2 h-5 w-5" />
-                </Link>
-                <Link
-                    href="#featured"
-                    className="inline-flex items-center justify-center px-6 py-3 border border-white hover:bg-white/10 font-semibold rounded-lg transition-colors text-white"
-                >
-                    View Collections
-                </Link>
-            </div>
-        </div>
-    </div>
-</section>
-
-            {/* Category Highlights */}
-            <section className="py-16 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
-                        Shop by Category
-                    </h2>
-                    <p className="text-gray-600 text-center mb-12">
-                        Find exactly what you need for your next fishing trip
-                    </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {categories.map((category) => {
-                            // Find a sample product image for this category
-                            const sampleProduct = featuredProducts.find(
-                                (p) => p.category_id === category.id,
-                            );
-                            const hasImage =
-                                sampleProduct && sampleProduct.image;
-                            const gradientClass =
-                                {
-                                    1: "from-blue-600 to-blue-800",
-                                    2: "from-green-600 to-green-800",
-                                    3: "from-purple-600 to-purple-800",
-                                }[category.id] || "from-blue-600 to-blue-800";
-
-                            return (
+                    <img
+                        src="/images/herobanner.jpg"
+                        alt=""
+                        fetchPriority="high"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+                <div className="hero-spotlight" aria-hidden="true" />
+                <div className="store-container relative grid lg:grid-cols-[1.15fr_1fr] gap-12 items-center pt-16 pb-24 lg:py-24 min-h-[620px]">
+                    <div className="relative z-10 max-w-2xl">
+                        <Reveal>
+                            <p className="text-xs uppercase tracking-[.25em] text-pamasoul-200 mb-6 flex items-center gap-3">
+                                <span className="w-8 h-px bg-pamasoul-300" />
+                                For the love of the water
+                            </p>
+                        </Reveal>
+                        <Reveal delay={80}>
+                            <h1 className="text-[clamp(2.7rem,5.8vw,5.5rem)] leading-[1.08] font-bold tracking-[-.055em]">
+                                Every cast.
+                                <br />A little more
+                                <br />
+                                <span className="text-pamasoul-300">soul.</span>
+                            </h1>
+                        </Reveal>
+                        <Reveal delay={160}>
+                            <p className="text-sm sm:text-base text-white/80 leading-relaxed max-w-md mt-7">
+                                The quiet before the bite. The thrill of the
+                                pull. Find rods, reels and lines made for the
+                                moments that bring you back.
+                            </p>
+                            <div className="flex flex-wrap gap-3 mt-9">
                                 <Link
-                                    key={category.id}
-                                    href={`/shop?category=${category.slug}`}
-                                    className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow h-64"
+                                    href="/shop"
+                                    className="button-primary bg-pamasoul-300 text-pamasoul-dark hover:bg-pamasoul-100"
                                 >
-                                    {/* Background Image if available */}
-                                    {hasImage ? (
-                                        <>
-                                            <div className="absolute inset-0">
-                                                <img
-                                                    src={
-                                                        sampleProduct.image_url ||
-                                                        sampleProduct.image
-                                                    }
-                                                    alt={category.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors"></div>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div
-                                            className={`h-full bg-gradient-to-br ${gradientClass} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}
-                                        >
-                                            <div className="text-center text-white p-6">
-                                                <h3 className="text-2xl font-bold mb-2">
-                                                    {category.name}
-                                                </h3>
-                                                <p className="text-blue-100 mb-4">
-                                                    {category.products_count}{" "}
-                                                    Products
-                                                </p>
-                                                <span className="inline-block border border-white px-4 py-2 rounded-lg group-hover:bg-white group-hover:text-blue-600 transition-colors">
-                                                    Shop Now
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Overlay Content (always show on top of image) */}
-                                    {hasImage && (
-                                        <div className="relative z-10 flex items-center justify-center h-full">
-                                            <div className="text-center text-white p-6">
-                                                <h3 className="text-2xl font-bold mb-2">
-                                                    {category.name}
-                                                </h3>
-                                                <p className="text-white/80 mb-4">
-                                                    {category.products_count}{" "}
-                                                    Products
-                                                </p>
-                                                <span className="inline-block border border-white px-4 py-2 rounded-lg group-hover:bg-pamasoul-400 group-hover:text-white transition-colors">
-                                                    Shop Now
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
+                                    Shop now{" "}
+                                    <ArrowRightIcon className="w-5 h-5" />
                                 </Link>
-                            );
-                        })}
+                                <a
+                                    href="#collections"
+                                    className="inline-flex gap-2 items-center justify-center rounded-xl border border-white/30 px-6 py-3 text-sm font-medium hover:bg-white/10"
+                                >
+                                    Explore collections{" "}
+                                    <ArrowDownIcon className="w-4 h-4" />
+                                </a>
+                            </div>
+                        </Reveal>
+                        <Reveal delay={240}>
+                            <p className="mt-10 text-[11px] tracking-wider text-white/60">
+                                BOHOL ROOTS. A PASSION WITHOUT BORDERS.
+                            </p>
+                        </Reveal>
                     </div>
-                </div>
-            </section>
-
-            {/* Featured Products */}
-            <section id="featured" className="py-16 bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
-                        Featured Products
-                    </h2>
-                    <p className="text-gray-600 text-center mb-12">
-                        Our most popular fishing gear, trusted by anglers
-                        worldwide
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {featuredProducts.map((product) => (
-                            <Link
-                                key={product.id}
-                                href={`/product/${product.slug}`}
-                                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group"
-                            >
-                                <div className="h-48 overflow-hidden bg-gray-100">
-                                    <img
-                                        src={getProductImageUrl(product)}
-                                        alt={product.name}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                        onError={(e) => {
-                                            e.target.src =
-                                                "https://picsum.photos/id/20/400/300";
-                                        }}
+                    <div
+                        className="hero-object relative hidden lg:block h-[410px]"
+                        aria-hidden="true"
+                    >
+                        <div className="hero-orbit inset-1 story-orb" />
+                        <div className="hero-orbit inset-9" />
+                        <div className="hero-orbit inset-16 border-dashed" />
+                        {reel ? (
+                            <div className="hero-reel absolute inset-16 bg-white rounded-full p-10 shadow-2xl">
+                                <ProductImage
+                                    loading="eager"
+                                    product={reel}
+                                    alt=""
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                        ) : (
+                            <div className="absolute inset-16 rounded-full bg-pamasoul-300/10 border border-pamasoul-200/30 flex items-center justify-center">
+                                <svg
+                                    viewBox="0 0 200 200"
+                                    className="w-44 h-44 fill-none stroke-pamasoul-200"
+                                    strokeWidth="2"
+                                >
+                                    <path d="M45 148L148 42M104 87l40 40c27 26 25 49-3 49-27 0-36-21-19-31" />
+                                    <path
+                                        d="M38 159l19-23"
+                                        strokeWidth="8"
+                                        strokeLinecap="round"
                                     />
-                                </div>
-                                <div className="p-4">
-                                    <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">
-                                        {product.name}
-                                    </h3>
-                                    <p className="text-sm text-gray-500 mb-2">
-                                        {product.category?.name}
-                                    </p>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-lg font-bold text-blue-600">
-                                            ₱
-                                            {Number(
-                                                product.price,
-                                            ).toLocaleString()}
-                                        </span>
-                                        <span
-                                            className={`text-xs px-2 py-1 rounded ${
-                                                product.stock > 5
-                                                    ? "bg-green-100 text-green-700"
-                                                    : product.stock > 0
-                                                      ? "bg-yellow-100 text-yellow-700"
-                                                      : "bg-red-100 text-red-700"
-                                            }`}
-                                        >
-                                            {product.stock_status}
-                                        </span>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-
-                    <div className="text-center mt-12">
-                        <Link
-                            href="/shop"
-                            className="inline-flex items-center justify-center px-6 py-3 bg-pamasoul-600 hover:bg-pamasoul-800 text-white font-semibold rounded-lg transition-colors"
-                        >
-                            View All Products
-                            <ArrowRightIcon className="ml-2 h-5 w-5" />
-                        </Link>
+                                </svg>
+                            </div>
+                        )}
+                        <div className="floating-tag absolute -left-2 top-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+                            <span className="block text-[9px] uppercase tracking-widest text-pamasoul-200">
+                                Find your flow
+                            </span>
+                            <span className="block text-sm font-medium mt-1">
+                                Precision in every pull
+                            </span>
+                        </div>
+                        <div className="floating-tag absolute right-0 bottom-7 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 max-w-[230px]">
+                            <span className="text-[9px] uppercase tracking-widest text-pamasoul-200">
+                                {reel
+                                    ? "From the reel collection"
+                                    : "PamaSoul essentials"}
+                            </span>
+                            <span className="block text-sm font-medium mt-1 line-clamp-2">
+                                {reel?.name || "Rods. Reels. Lines."}
+                            </span>
+                        </div>
                     </div>
                 </div>
+                <svg
+                    viewBox="0 0 1440 60"
+                    preserveAspectRatio="none"
+                    className="absolute bottom-[-1px] left-0 w-full h-8 sm:h-12 fill-gray-50"
+                    aria-hidden="true"
+                >
+                    <path d="M0 20c200 60 370-30 600 0s420 50 840-10v50H0z" />
+                </svg>
             </section>
-
-            {/* CTA Banner */}
-            <section className="py-16 bg-gradient-to-r from-yellow-500 to-yellow-600">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                        Ready to Upgrade Your Gear?
-                    </h2>
-                    <p className="text-lg text-gray-800 mb-8">
-                        Join thousands of satisfied anglers who trust Pamasoul
-                        for their fishing needs.
-                    </p>
+            <div
+                className="marquee overflow-hidden border-b border-pamasoul-100 py-5 bg-gray-50"
+                aria-label="Rods, reels, lines. Fishing is in our soul."
+            >
+                <div
+                    className="marquee-track text-sm font-medium uppercase tracking-[.2em] text-pamasoul-700"
+                    aria-hidden="true"
+                >
+                    {[0, 1].map((i) => (
+                        <div key={i}>
+                            {[
+                                "Rods",
+                                "✦",
+                                "Reels",
+                                "✦",
+                                "Lines",
+                                "✦",
+                                "Fishing is in our soul",
+                                "✦",
+                                "From first cast to last light",
+                                "✦",
+                            ].map((text, j) => (
+                                <span key={j}>{text}</span>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <section
+                id="collections"
+                className="store-container py-16 sm:py-20 scroll-mt-24"
+            >
+                <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-9">
+                    <div>
+                        <p className="kicker mb-3">The essentials</p>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-pamasoul-dark">
+                            Three ways to find your flow.
+                        </h2>
+                    </div>
                     <Link
                         href="/shop"
-                        className="inline-flex items-center justify-center px-8 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors"
+                        className="text-sm font-semibold text-pamasoul-700 flex items-center gap-2"
                     >
-                        Start Shopping
-                        <ShoppingCartIcon className="ml-2 h-5 w-5" />
+                        Explore all tackle{" "}
+                        <ArrowRightIcon className="w-4 h-4" />
                     </Link>
+                </Reveal>
+                <div className="grid sm:grid-cols-3 gap-5">
+                    {categories.map((category, i) => (
+                        <Reveal key={category.id} delay={i * 90}>
+                            <Link
+                                href={`/shop?category=${category.slug}`}
+                                className="group relative block overflow-hidden rounded-3xl h-72 sm:h-80 bg-pamasoul-dark"
+                            >
+                                <img
+                                    src={
+                                        collectionArt[category.slug] ||
+                                        "/images/defaultbanner.jpg"
+                                    }
+                                    alt=""
+                                    loading="lazy"
+                                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-pamasoul-dark via-pamasoul-dark/20 to-transparent" />
+                                <div className="relative h-full flex flex-col justify-end p-7 text-white">
+                                    <p className="text-[10px] tracking-widest uppercase text-pamasoul-200 mb-2">
+                                        {category.products_count} products
+                                    </p>
+                                    <h3 className="text-2xl font-semibold mb-2">
+                                        {category.name}
+                                    </h3>
+                                    <p className="text-xs text-white/75 leading-relaxed mb-4">
+                                        {collectionCopy[category.slug] ||
+                                            "Tackle for your next adventure."}
+                                    </p>
+                                    <span className="flex items-center justify-between text-sm font-medium">
+                                        Discover collection{" "}
+                                        <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                    </span>
+                                </div>
+                            </Link>
+                        </Reveal>
+                    ))}
                 </div>
+            </section>
+            <section
+                id="featured"
+                className="bg-white border-y border-pamasoul-50 py-16 sm:py-20"
+            >
+                <div className="store-container">
+                    <Reveal className="mb-9">
+                        <p className="kicker mb-3">Fresh in the tackle box</p>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-pamasoul-dark">
+                            Your next favorite piece of gear.
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-3">
+                            Explore the latest additions to our collection.
+                        </p>
+                    </Reveal>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+                        {featuredProducts.map((product, i) => (
+                            <Reveal key={product.id} delay={(i % 4) * 65}>
+                                <ProductCard product={product} />
+                            </Reveal>
+                        ))}
+                    </div>
+                    {!featuredProducts.length && (
+                        <p className="rounded-2xl bg-pamasoul-50 p-8 text-pamasoul-700">
+                            Our tackle box is being restocked. Check back soon.
+                        </p>
+                    )}
+                    <Reveal className="text-center mt-10">
+                        <Link href="/shop" className="button-secondary">
+                            Find your gear{" "}
+                            <ArrowRightIcon className="w-4 h-4" />
+                        </Link>
+                    </Reveal>
+                </div>
+            </section>
+            <section className="store-container py-20">
+                <div className="grid md:grid-cols-2 gap-10 lg:gap-20 items-center">
+                    <Reveal className="relative overflow-hidden rounded-3xl h-80 sm:h-96 bg-pamasoul-50 flex items-center justify-center">
+                        <div className="story-orb absolute w-80 h-80 rounded-full border border-pamasoul-200 border-dashed" />
+                        <div className="absolute w-60 h-60 rounded-full bg-pamasoul-100/70" />
+                        <div className="relative text-center">
+                            <p className="text-xs uppercase tracking-[.3em] text-pamasoul-700 mb-3">
+                                Pamasol + Soul
+                            </p>
+                            <p className="text-5xl sm:text-6xl font-bold tracking-tight text-pamasoul-dark">
+                                It’s in
+                                <br />
+                                our soul
+                                <span className="text-pamasoul-400">.</span>
+                            </p>
+                            <p className="mt-5 text-xs text-pamasoul-700">
+                                ROOTED IN BOHOL, PHILIPPINES
+                            </p>
+                        </div>
+                    </Reveal>
+                    <Reveal delay={100}>
+                        <p className="kicker mb-4">More than a hobby</p>
+                        <h2 className="text-3xl sm:text-4xl font-bold leading-tight tracking-tight text-pamasoul-dark">
+                            Some things pull you
+                            <br />
+                            back to the water.
+                        </h2>
+                        <p className="text-sm leading-7 text-gray-600 mt-6">
+                            PamaSoul brings together “Pamasol,” the Cebuano word
+                            for fishing, and “Soul.” Because for us, fishing is
+                            part of who we are. We’re here for the early starts,
+                            the patient waits and the stories you bring home.
+                        </p>
+                        <Link
+                            href="/about"
+                            className="inline-flex items-center gap-3 text-sm font-semibold text-pamasoul-700 mt-7"
+                        >
+                            Meet PamaSoul <ArrowRightIcon className="w-4 h-4" />
+                        </Link>
+                    </Reveal>
+                </div>
+            </section>
+            <section className="store-container pb-4">
+                <Reveal className="grid sm:grid-cols-3 gap-6 rounded-3xl border border-pamasoul-100 bg-pamasoul-50/60 p-7 sm:p-9">
+                    {[
+                        [
+                            TruckIcon,
+                            "Shipping across the Philippines",
+                            "Delivery fees clearly shown at checkout.",
+                        ],
+                        [
+                            ShieldCheckIcon,
+                            "Your account, your gear",
+                            "Keep your cart and follow your orders.",
+                        ],
+                        [
+                            ChatBubbleLeftRightIcon,
+                            "Let’s talk tackle",
+                            "Questions before your next trip? We’re here.",
+                        ],
+                    ].map(([Icon, title, copy]) => (
+                        <div key={title} className="flex gap-4">
+                            <Icon className="h-6 w-6 text-pamasoul-600 shrink-0 mt-1" />
+                            <div>
+                                <h3 className="text-sm font-semibold text-pamasoul-dark">
+                                    {title}
+                                </h3>
+                                <p className="text-xs leading-6 text-gray-600 mt-1">
+                                    {copy}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </Reveal>
             </section>
         </CustomerLayout>
     );

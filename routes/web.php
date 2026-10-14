@@ -1,10 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Customer\CartController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +31,8 @@ Route::get('/policies', function () {
 Route::get('/support', function () {
     return inertia('Customer/Support');
 })->name('support');
+
+Route::get('/dashboard', fn () => redirect()->route(auth()->user()->role === 'admin' ? 'admin.dashboard' : 'shop.index'))->middleware('auth')->name('dashboard');
 
 // ==================== PROFILE ROUTES ====================
 Route::middleware('auth')->group(function () {

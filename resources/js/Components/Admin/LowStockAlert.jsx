@@ -14,7 +14,7 @@ export default function LowStockAlert({ products }) {
                         Low Stock Alert
                     </h2>
                     <Link
-                        href="/admin/products?stock_status=low_stock"
+                        href="/admin/products?max_stock=5"
                         className="text-sm text-blue-600 hover:text-blue-800"
                     >
                         View all →

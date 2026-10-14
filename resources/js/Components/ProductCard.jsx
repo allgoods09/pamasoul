@@ -1,92 +1,82 @@
 import { Link } from "@inertiajs/react";
-import { ShoppingCartIcon } from "@heroicons/react/24/outline";
-
-export default function ProductCard({
-    product,
-    onAddToCart,
-    showAddButton = true,
-}) {
-    // Generate image URL directly in component
-    const getImageUrl = () => {
-        if (product.image && product.image !== "") {
-            return product.image;
-        }
-        // Use product ID for unique placeholder
-        const imageId = 100 + (product.id % 100);
-        return `https://picsum.photos/id/${imageId}/400/300`;
-    };
-
-    const imageUrl = getImageUrl();
-
-    // Debug log to verify
-    console.log(
-        "Product ID:",
-        product.id,
-        "Image URL:",
-        imageUrl,
-        "Original image:",
-        product.image,
-    );
-
+import { ShoppingCartIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { useEffect, useRef, useState } from "react";
+import ProductImage from "./ProductImage";
+import Tilt from "./Motion/Tilt";
+import useCartAction from "@/hooks/useCartAction";
+import { formatPeso } from "@/helpers/imageHelper";
+export default function ProductCard({ product, showAddButton = true }) {
+    const { adding, add } = useCartAction();
+    const [added, setAdded] = useState(false);
+    const timer = useRef();
+    useEffect(() => () => clearTimeout(timer.current), []);
+    const unavailable = product.stock <= 0 || product.is_active === false;
+    const onAdd = () =>
+        add(product, 1, () => {
+            setAdded(true);
+            clearTimeout(timer.current);
+            timer.current = setTimeout(() => setAdded(false), 1800);
+        });
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group">
-            <Link href={`/product/${product.slug}`}>
-                <div className="h-48 overflow-hidden bg-gray-100">
-                    <img
-                        src={imageUrl}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                            e.target.src =
-                                "https://picsum.photos/id/20/400/300";
-                        }}
+        <Tilt className="h-full">
+            <article className="product-card h-full flex flex-col overflow-hidden bg-white border border-gray-100 rounded-2xl group">
+                <Link
+                    href={`/product/${product.slug}`}
+                    className="relative block bg-pamasoul-50/50 overflow-hidden aspect-[4/3] p-4 sm:p-6"
+                    aria-label={`View ${product.name}`}
+                >
+                    <ProductImage
+                        product={product}
+                        className="product-image w-full h-full object-contain mix-blend-multiply"
                     />
-                </div>
-            </Link>
-            <div className="p-4">
-                <Link href={`/product/${product.slug}`}>
-                    <h3 className="font-semibold text-gray-900 mb-1 hover:text-blue-600 transition-colors line-clamp-1">
-                        {product.name}
-                    </h3>
-                </Link>
-                <p className="text-sm text-gray-500 mb-2">
-                    {product.category?.name}
-                </p>
-
-                <div className="flex items-center justify-between mb-3">
-                    <span className="text-lg font-bold text-pamasoul-600">
-                        ₱{Number(product.price).toLocaleString()}
-                    </span>
                     <span
-                        className={`text-xs px-2 py-1 rounded ${
-                            product.stock > 5
-                                ? "bg-green-100 text-green-700"
-                                : product.stock > 0
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-red-100 text-red-700"
-                        }`}
+                        className={`absolute top-3 left-3 text-[10px] sm:text-xs font-medium rounded-full px-2.5 py-1 ${unavailable ? "bg-gray-100 text-gray-500" : product.stock <= 5 ? "bg-amber-50 text-amber-800" : "bg-white/90 text-pamasoul-700"}`}
                     >
-                        {product.stock_status}
+                        {unavailable
+                            ? "Unavailable"
+                            : product.stock <= 5
+                              ? `Only ${product.stock} left`
+                              : "In stock"}
                     </span>
-                </div>
-
-                {showAddButton && (
-                    <button
-                        onClick={() => onAddToCart(product)}
-                        disabled={product.stock === 0}
-                        className={`w-full flex items-center justify-center space-x-2 py-2 rounded-lg transition-colors ${
-                            product.stock > 0
-                                ? "bg-pamasoul-600 hover:bg-pamasoul-800 text-white"
-                                : "bg-gray-300 cursor-not-allowed text-gray-500"
-                        }`}
+                </Link>
+                <div className="p-3 sm:p-5 flex flex-col flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-pamasoul-600 mb-2">
+                        {product.category?.name || "Fishing tackle"}
+                    </p>
+                    <Link
+                        href={`/product/${product.slug}`}
+                        className="font-semibold text-sm sm:text-base text-gray-900 hover:text-pamasoul-700 leading-relaxed line-clamp-2 mb-3"
                     >
-                        <ShoppingCartIcon className="h-4 w-4" />
-                        <span>
-                            {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
-                        </span>
-                    </button>
-                )}
-            </div>
-        </div>
+                        {product.name}
+                    </Link>
+                    <p className="text-base sm:text-lg font-bold text-pamasoul-800 mt-auto mb-4">
+                        {formatPeso(product.price)}
+                    </p>
+                    {showAddButton && (
+                        <button
+                            onClick={onAdd}
+                            disabled={unavailable || adding}
+                            className={`w-full min-h-[44px] rounded-xl px-2 text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-2 ${added ? "bg-green-50 text-green-700" : "bg-pamasoul-50 hover:bg-pamasoul-600 text-pamasoul-800 hover:text-white"} disabled:opacity-50`}
+                            aria-label={`Add ${product.name} to cart`}
+                        >
+                            {added ? (
+                                <CheckIcon className="w-4 h-4 shrink-0" />
+                            ) : (
+                                <ShoppingCartIcon className="w-4 h-4 shrink-0" />
+                            )}
+                            <span>
+                                {unavailable
+                                    ? "Unavailable"
+                                    : adding
+                                      ? "Adding…"
+                                      : added
+                                        ? "Added!"
+                                        : "Add to cart"}
+                            </span>
+                        </button>
+                    )}
+                </div>
+            </article>
+        </Tilt>
     );
 }

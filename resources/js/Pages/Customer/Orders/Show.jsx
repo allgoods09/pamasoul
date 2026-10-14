@@ -22,7 +22,7 @@ export default function OrdersShow({ order }) {
 
     // Use stored total, calculate shipping fee as the difference
     const orderTotal = Number(order.total) || 0;
-    const shippingFee = orderTotal - subtotal;
+    const shippingFee = Number(order.shipping_fee);
     const total = orderTotal; // Use stored total directly
 
     const statusColors = {
@@ -56,7 +56,7 @@ export default function OrdersShow({ order }) {
     const StatusIcon = status.icon;
 
     const getStepStatus = (stepName) => {
-        const statusOrder = ["Pending", "Paid", "Shipped", "Completed"];
+        const statusOrder = (order.payment_method === "COD" && order.status !== "Paid") ? ["Pending", "Shipped", "Completed"] : ["Pending", "Paid", "Shipped", "Completed"];
         const currentIndex = statusOrder.indexOf(order.status);
         const stepIndex = statusOrder.indexOf(stepName);
         return stepIndex <= currentIndex;
@@ -75,7 +75,7 @@ export default function OrdersShow({ order }) {
             label: "Order Delivered",
             icon: CheckCircleIcon,
         },
-    ];
+    ].filter(step => order.payment_method !== "COD" || order.status === "Paid" || step.status !== "Paid");
 
     return (
         <CustomerLayout>
@@ -98,7 +98,7 @@ export default function OrdersShow({ order }) {
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                                 <div>
                                     <h1 className="text-2xl font-bold text-gray-900">
-                                        Order #{order.id}
+                                        Order {order.reference || `#${order.id}`}
                                     </h1>
                                     <p className="text-sm text-gray-500 mt-1">
                                         Placed on{" "}
@@ -162,13 +162,7 @@ export default function OrdersShow({ order }) {
                                                             >
                                                                 {step.label}
                                                             </p>
-                                                            {isCompleted && (
-                                                                <p className="text-xs text-gray-500 mt-1">
-                                                                    {new Date(
-                                                                        order.created_at,
-                                                                    ).toLocaleDateString()}
-                                                                </p>
-                                                            )}
+                                                            {isCompleted && <p className="text-xs text-gray-500 mt-1">{step.status === 'Pending' ? `Placed ${new Date(order.created_at).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}` : isCurrent ? `Updated ${new Date(order.updated_at).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' })}` : 'Stage complete'}</p>}
                                                         </div>
                                                         {isCurrent && (
                                                             <span className="text-xs text-pamasoul-600 font-medium bg-pamasoul-50 px-2 py-1 rounded-full">
@@ -197,7 +191,7 @@ export default function OrdersShow({ order }) {
                             </div>
                             <div className="space-y-2">
                                 <p className="text-gray-700">
-                                    {order.shipping_address}
+                                    <span className="whitespace-pre-line">{order.shipping_address}</span>
                                 </p>
                                 <div className="flex items-center space-x-2 text-sm text-gray-500">
                                     <TruckIcon className="h-4 w-4" />
@@ -291,11 +285,11 @@ export default function OrdersShow({ order }) {
                                             src={getProductImageUrl(
                                                 item.product,
                                             )}
-                                            alt={item.product.name}
+                                            alt={item.product_name || item.product.name}
                                             className="h-full w-full object-cover"
                                             onError={(e) => {
                                                 e.target.src =
-                                                    "https://picsum.photos/id/20/100/100";
+                                                    "/images/product-placeholder.svg";
                                             }}
                                         />
                                     </div>
@@ -304,7 +298,7 @@ export default function OrdersShow({ order }) {
                                             href={`/product/${item.product.slug}`}
                                             className="text-lg font-semibold text-gray-900 hover:text-pamasoul-600 transition-colors"
                                         >
-                                            {item.product.name}
+                                            {item.product_name || item.product.name}
                                         </Link>
                                         <p className="text-sm text-gray-500 mt-1">
                                             {item.product.category?.name}

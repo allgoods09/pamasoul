@@ -20,9 +20,10 @@ export default function ShippingSettingsCard({ shippingConfig }) {
 
     const handleSave = () => {
         // Convert to numbers only when saving
-        const thresholdNum = parseInt(freeThreshold, 10) || 0;
-        const baseFeeNum = parseInt(baseFee, 10) || 0;
+        const thresholdNum = Number(freeThreshold);
+        const baseFeeNum = Number(baseFee);
 
+        if (!Number.isFinite(thresholdNum) || !Number.isFinite(baseFeeNum) || freeThreshold === '' || baseFee === '' || thresholdNum < 0 || baseFeeNum < 0) { toast.error('Enter valid, non-negative shipping amounts.'); return; }
         setSaving(true);
         router.post(
             "/admin/orders/shipping-settings",
@@ -33,12 +34,12 @@ export default function ShippingSettingsCard({ shippingConfig }) {
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success("Shipping settings updated successfully");
+
                     setIsEditing(false);
                     setSaving(false);
                 },
-                onError: () => {
-                    toast.error("Failed to update shipping settings");
+                onError: errors => {
+                    toast.error(errors.free_threshold || errors.base_fee || "Failed to update shipping settings");
                     setSaving(false);
                 },
             },
@@ -54,7 +55,7 @@ export default function ShippingSettingsCard({ shippingConfig }) {
     const handleThresholdChange = (e) => {
         const value = e.target.value;
         // Allow empty string or numbers only
-        if (value === "" || /^\d*$/.test(value)) {
+        if (value === "" || /^\d*(\.\d{0,2})?$/.test(value)) {
             setFreeThreshold(value);
         }
     };
@@ -62,13 +63,13 @@ export default function ShippingSettingsCard({ shippingConfig }) {
     const handleBaseFeeChange = (e) => {
         const value = e.target.value;
         // Allow empty string or numbers only
-        if (value === "" || /^\d*$/.test(value)) {
+        if (value === "" || /^\d*(\.\d{0,2})?$/.test(value)) {
             setBaseFee(value);
         }
     };
 
     const getStatusText = () => {
-        const threshold = parseInt(freeThreshold, 10) || 0;
+        const threshold = Number(freeThreshold);
         if (threshold === 0) return "Free shipping disabled";
         return `Free shipping on orders over ₱${threshold.toLocaleString()}`;
     };

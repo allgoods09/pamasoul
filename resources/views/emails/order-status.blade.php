@@ -117,7 +117,7 @@
                     <tbody>
                         @foreach($order->items as $item)
                         <tr>
-                            <td>{{ $item->product->name ?? 'Product' }}</td>
+                            <td>{{ ($item->product_name ?? $item->product->name) ?? 'Product' }}</td>
                             <td class="text-right">{{ $item->quantity }}</td>
                             <td class="text-right">₱{{ number_format(floatval($item->price_snapshot), 2) }}</td>
                             <td class="text-right">₱{{ number_format(floatval($item->price_snapshot) * $item->quantity, 2) }}</td>

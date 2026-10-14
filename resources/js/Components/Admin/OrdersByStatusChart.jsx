@@ -1,3 +1,4 @@
+import { useMotion } from '@/Components/Motion/MotionProvider';
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
@@ -9,6 +10,7 @@ const COLORS = {
 };
 
 export default function OrdersByStatusChart({ ordersByStatus }) {
+    const { mode, reduced } = useMotion();
     const data = ordersByStatus.map(item => ({
         name: item.status,
         value: item.count,
@@ -20,7 +22,7 @@ export default function OrdersByStatusChart({ ordersByStatus }) {
             <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                        <Pie
+                        <Pie isAnimationActive={!reduced && mode !== "calm"}
                             data={data}
                             cx="50%"
                             cy="50%"

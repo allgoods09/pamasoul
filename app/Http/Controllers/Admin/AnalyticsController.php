@@ -3,18 +3,21 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
-use App\Models\Category;
+use App\Support\SalesSeries;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Validation\ValidationException;
 
 class AnalyticsController extends Controller
 {
     public function index(Request $request)
-    {   
+    {
+        $this->validateDates($request);
 
         $firstOrderDate = Order::orderBy('created_at', 'asc')->first();
         $defaultStartDate = $firstOrderDate ? $firstOrderDate->created_at->toDateString() : now()->subDays(30)->toDateString();
@@ -22,31 +25,31 @@ class AnalyticsController extends Controller
         // Date range filtering - default to last 30 days
         $dateFrom = $request->get('date_from', $defaultStartDate);
         $dateTo = $request->get('date_to', now()->toDateString());
-        
+
         // IMPORTANT: Add end of day to dateTo for inclusive range
-        $endDate = $dateTo . ' 23:59:59';
-        
+        $endDate = $dateTo.' 23:59:59';
+
         // ========== SALES OVERVIEW ==========
         $totalSales = Order::where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->sum('total');
-        
+
         $totalOrders = Order::whereBetween('created_at', [$dateFrom, $endDate])->count();
-        
+
         $pendingOrders = Order::where('status', 'Pending')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->count();
-        
+
         $shippedOrders = Order::where('status', 'Shipped')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->count();
-        
+
         $completedOrders = Order::where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->count();
-        
-        $averageOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
-        
+
+        $averageOrderValue = ($paidCount = Order::where('status', 'Completed')->whereBetween('created_at', [$dateFrom, $endDate])->count()) > 0 ? $totalSales / $paidCount : 0;
+
         // ========== DAILY SALES CHART ==========
         $dailySales = Order::where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $endDate])
@@ -61,7 +64,7 @@ class AnalyticsController extends Controller
                     'orders' => intval($item->orders),
                 ];
             });
-        
+
         // ========== CATEGORY SALES ==========
         $categorySales = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
@@ -78,7 +81,7 @@ class AnalyticsController extends Controller
                     'total' => floatval($item->total),
                 ];
             });
-        
+
         // ========== TOP SELLING PRODUCTS ==========
         $topProducts = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
@@ -103,64 +106,47 @@ class AnalyticsController extends Controller
                     'revenue' => floatval($item->revenue),
                 ];
             });
-        
+
         // ========== MONTHLY TRENDS ==========
-        $monthlyTrends = Order::where('status', 'Completed')
-            ->where('created_at', '>=', now()->subMonths(12)->startOfMonth())
-            ->select(
-                DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month_key'),
-                DB::raw('DATE_FORMAT(created_at, "%b %Y") as month'),
-                DB::raw('SUM(total) as total'),
-                DB::raw('COUNT(*) as orders')
-            )
-            ->groupBy('month_key', 'month')
-            ->orderBy('month_key')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'month' => $item->month,
-                    'total' => floatval($item->total),
-                    'orders' => intval($item->orders),
-                ];
-            });
-        
+        $monthlyTrends = SalesSeries::monthly(now()->subMonths(11)->startOfMonth(), now());
+
         // ========== CUSTOMER STATISTICS ==========
         $totalCustomers = User::where('role', 'customer')->count();
-        
+
         $newCustomers = User::where('role', 'customer')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->count();
-        
+
         // Repeat customers (customers with 2+ completed orders)
-        $repeatCustomers = DB::table('orders')
+        $repeatQuery = DB::table('orders')
             ->where('status', 'Completed')  // Only count completed orders
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->select('user_id', DB::raw('COUNT(*) as order_count'))
             ->groupBy('user_id')
-            ->having('order_count', '>', 1)
-            ->count();
-        
-        $oneTimeCustomers = DB::table('orders')
+            ->havingRaw('COUNT(*) > 1');
+        $repeatCustomers = DB::query()->fromSub($repeatQuery, 'repeat_buyers')->count();
+
+        $oneTimeQuery = DB::table('orders')
             ->where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->select('user_id', DB::raw('COUNT(*) as order_count'))
             ->groupBy('user_id')
-            ->having('order_count', '=', 1)
-            ->count();
-        
+            ->havingRaw('COUNT(*) = 1');
+        $oneTimeCustomers = DB::query()->fromSub($oneTimeQuery, 'single_buyers')->count();
+
         // ========== STOCK STATUS ==========
-        $lowStockProducts = Product::where('stock', '<=', 5)->where('stock', '>', 0)->count();
-        $outOfStockProducts = Product::where('stock', '<=', 0)->count();
-        $totalProducts = Product::count();
+        $lowStockProducts = Product::where('is_active', true)->where('stock', '<=', 5)->where('stock', '>', 0)->count();
+        $outOfStockProducts = Product::where('is_active', true)->where('stock', '<=', 0)->count();
+        $totalProducts = Product::where('is_active', true)->count();
         $healthyStock = $totalProducts - ($lowStockProducts + $outOfStockProducts);
-        
+
         // Low stock products list
-        $lowStockList = Product::where('stock', '<=', 5)
+        $lowStockList = Product::where('is_active', true)->where('stock', '<=', 5)
             ->where('stock', '>', 0)
             ->orderBy('stock', 'asc')
             ->limit(5)
             ->get(['id', 'name', 'stock']);
-        
+
         // ========== PAYMENT METHOD DISTRIBUTION ==========
         $paymentDistribution = Order::whereBetween('created_at', [$dateFrom, $endDate])
             ->select('payment_method', DB::raw('COUNT(*) as count'))
@@ -172,7 +158,7 @@ class AnalyticsController extends Controller
                     'count' => intval($item->count),
                 ];
             });
-        
+
         // ========== ORDER STATUS DISTRIBUTION ==========
         $orderStatusDistribution = Order::whereBetween('created_at', [$dateFrom, $endDate])
             ->select('status', DB::raw('COUNT(*) as count'))
@@ -184,7 +170,7 @@ class AnalyticsController extends Controller
                     'count' => intval($item->count),
                 ];
             });
-        
+
         // ========== REVENUE BY PAYMENT METHOD ==========
         $revenueByPaymentMethod = Order::where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $endDate])
@@ -197,27 +183,10 @@ class AnalyticsController extends Controller
                     'total' => floatval($item->total),
                 ];
             });
-        
+
         // ========== AVG ORDER VALUE BY MONTH ==========
-        $avgOrderValueByMonth = Order::where('status', 'Completed')
-        ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
-        ->select(
-            DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month_key'),
-            DB::raw('DATE_FORMAT(created_at, "%b %Y") as month'),
-            DB::raw('AVG(total) as avg_value'),
-            DB::raw('COUNT(*) as order_count')
-        )
-        ->groupBy('month_key', 'month')
-        ->orderBy('month_key', 'asc')
-        ->get()
-        ->map(function ($item) {
-            return [
-                'month' => $item->month,
-                'avg_value' => floatval($item->avg_value),
-                'order_count' => intval($item->order_count),
-            ];
-        });
-        
+        $avgOrderValueByMonth = SalesSeries::monthly(now()->subMonths(5)->startOfMonth(), now());
+
         // ========== TOP CUSTOMERS ==========
         $topCustomers = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
@@ -243,7 +212,7 @@ class AnalyticsController extends Controller
                     'order_count' => intval($item->order_count),
                 ];
             });
-        
+
         return inertia('Admin/Analytics/Index', [
             'stats' => [
                 'totalSales' => $totalSales,
@@ -276,37 +245,38 @@ class AnalyticsController extends Controller
                 'date_to' => $dateTo,
             ],
             'fullRange' => [
-                'from' => $firstOrderDate,  // Your oldest order date
+                'from' => $defaultStartDate,  // Your oldest order date
                 'to' => now()->toDateString(),
             ],
         ]);
     }
-    
+
     public function exportPdf(Request $request)
     {
+        $this->validateDates($request);
         $dateFrom = $request->get('date_from', now()->subDays(30)->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
-        $endDate = $dateTo . ' 23:59:59';
-        
+        $endDate = $dateTo.' 23:59:59';
+
         // Sales Overview
         $totalSales = Order::where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->sum('total');
-        
+
         $totalOrders = Order::whereBetween('created_at', [$dateFrom, $endDate])->count();
-        
-        $averageOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
-        
+
+        $averageOrderValue = ($paidCount = Order::where('status', 'Completed')->whereBetween('created_at', [$dateFrom, $endDate])->count()) > 0 ? $totalSales / $paidCount : 0;
+
         // Total Customers
         $totalCustomers = User::where('role', 'customer')->count();
-        
+
         // Total Items Sold
         $totalItemsSold = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->where('orders.status', 'Completed')
             ->whereBetween('orders.created_at', [$dateFrom, $endDate])
             ->sum('order_items.quantity');
-        
+
         // Top Products
         $topProducts = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
@@ -318,7 +288,7 @@ class AnalyticsController extends Controller
             ->orderBy('total_sold', 'desc')
             ->limit(10)
             ->get();
-        
+
         // Category Sales
         $categorySales = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
@@ -330,7 +300,7 @@ class AnalyticsController extends Controller
             ->groupBy('categories.id', 'categories.name')
             ->orderBy('total', 'desc')
             ->get();
-        
+
         $data = [
             'generated_at' => now()->format('Y-m-d H:i:s'),
             'date_range' => [
@@ -345,44 +315,53 @@ class AnalyticsController extends Controller
             'top_products' => $topProducts,
             'category_sales' => $categorySales,
         ];
-        
+
         $pdf = Pdf::loadView('pdf.analytics-report', $data);
         $pdf->setPaper('A4', 'portrait');
         $pdf->getDomPDF()->set_option('isPhpEnabled', true);
-        
+
         return $pdf->download("analytics-report-{$dateFrom}-to-{$dateTo}.pdf");
     }
-    
+
     public function exportCsv(Request $request)
     {
+        $this->validateDates($request);
         $dateFrom = $request->get('date_from', now()->subDays(30)->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
-        $endDate = $dateTo . ' 23:59:59';
-        
+        $endDate = $dateTo.' 23:59:59';
+
         $dailySales = Order::where('status', 'Completed')
             ->whereBetween('created_at', [$dateFrom, $endDate])
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total) as total'), DB::raw('COUNT(*) as orders'))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
-        
+
         $csvFileName = "analytics-export-{$dateFrom}-to-{$dateTo}.csv";
         $handle = fopen('php://temp', 'w+');
-        
+
         fwrite($handle, "\xEF\xBB\xBF");
-        fputcsv($handle, ['Date', 'Total Sales (₱)', 'Number of Orders']);
-        
+        fputcsv($handle, ['Date', 'Total Sales (₱)', 'Number of Orders'], ',', '"', '');
+
         foreach ($dailySales as $sale) {
-            fputcsv($handle, [$sale->date, number_format($sale->total, 2), $sale->orders]);
+            fputcsv($handle, [$sale->date, number_format($sale->total, 2), $sale->orders], ',', '"', '');
         }
-        
+
         rewind($handle);
         $csvContent = stream_get_contents($handle);
         fclose($handle);
-        
+
         return response($csvContent, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$csvFileName}\"",
         ]);
+    }
+
+    private function validateDates(Request $request): void
+    {
+        $request->validate(['date_from' => 'nullable|date_format:Y-m-d', 'date_to' => 'nullable|date_format:Y-m-d']);
+        if ($request->filled('date_from') && $request->filled('date_to') && $request->date_from > $request->date_to) {
+            throw ValidationException::withMessages(['date_to' => 'End date must be on or after the start date.']);
+        }
     }
 }

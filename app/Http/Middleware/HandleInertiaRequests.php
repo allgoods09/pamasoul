@@ -2,10 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\CartSummary;
 use Illuminate\Http\Request;
-use Inertia\Middleware;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Setting;  // ← ADD THIS
+use Inertia\Middleware;
+
+  // ← ADD THIS
 
 class HandleInertiaRequests extends Middleware
 {
@@ -15,19 +17,20 @@ class HandleInertiaRequests extends Middleware
     {
         $user = Auth::user();
         $cartCount = 0;
-        
+
         if ($user && $user->cart) {
             $cartCount = $user->cart->items()->sum('quantity');
         }
-        
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user(),
             ],
             'cartCount' => $cartCount,
-            'shippingConfig' => [
-                'free_threshold' => (float) Setting::get('shipping.free_threshold', 5000),  // ← CHANGED
-                'base_fee' => (float) Setting::get('shipping.base_fee', 50),  // ← CHANGED
+            'shippingConfig' => CartSummary::shippingConfig(),
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
             'hideAds' => $this->shouldHideAds($request),
         ]);
@@ -40,9 +43,9 @@ class HandleInertiaRequests extends Middleware
             'checkout.index',
             'order.confirmation',
             'customer.orders',
-            'profile.edit'
+            'profile.edit',
         ];
-        
+
         return in_array($request->route()?->getName(), $hideAdsRoutes);
     }
 }

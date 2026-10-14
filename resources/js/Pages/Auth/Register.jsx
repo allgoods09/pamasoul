@@ -41,7 +41,7 @@ export default function Register() {
                             id="name"
                             name="name"
                             value={data.name}
-                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-pamasoul-500 focus:ring-pamasoul-500"
                             autoComplete="name"
                             isFocused={true}
                             onChange={(e) => setData('name', e.target.value)}
@@ -62,7 +62,7 @@ export default function Register() {
                             type="email"
                             name="email"
                             value={data.email}
-                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-pamasoul-500 focus:ring-pamasoul-500"
                             autoComplete="username"
                             onChange={(e) => setData('email', e.target.value)}
                             required
@@ -82,7 +82,7 @@ export default function Register() {
                             type="password"
                             name="password"
                             value={data.password}
-                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-pamasoul-500 focus:ring-pamasoul-500"
                             autoComplete="new-password"
                             onChange={(e) => setData('password', e.target.value)}
                             required
@@ -103,7 +103,7 @@ export default function Register() {
                             type="password"
                             name="password_confirmation"
                             value={data.password_confirmation}
-                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-pamasoul-500 focus:ring-pamasoul-500"
                             autoComplete="new-password"
                             onChange={(e) => setData('password_confirmation', e.target.value)}
                             required
@@ -112,8 +112,8 @@ export default function Register() {
                     <InputError message={errors.password_confirmation} className="mt-2" />
                 </div>
 
-                <PrimaryButton 
-                    className="w-full justify-center rounded-lg bg-blue-600 py-2.5 text-sm font-semibold hover:bg-blue-700 focus:ring-blue-500"
+                <PrimaryButton
+                    className="w-full justify-center rounded-lg bg-pamasoul-600 py-2.5 text-sm font-semibold hover:bg-pamasoul-700 focus:ring-pamasoul-500"
                     disabled={processing}
                 >
                     {processing ? 'Creating account...' : 'Create Account'}
@@ -121,7 +121,7 @@ export default function Register() {
 
                 <div className="text-center text-sm text-gray-600">
                     Already have an account?{' '}
-                    <Link href={route('login')} className="font-medium text-blue-600 hover:text-blue-800">
+                    <Link href={route('login')} className="font-medium text-pamasoul-600 hover:text-pamasoul-800">
                         Sign in
                     </Link>
                 </div>

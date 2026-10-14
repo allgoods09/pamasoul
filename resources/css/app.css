@@ -29,3 +29,65 @@
 html {
     overflow-y: scroll;
 }
+@layer base {
+    :focus-visible { outline: 3px solid #8A6BCC; outline-offset: 4px; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button:disabled { cursor: not-allowed; }
+    input:not([type=checkbox]):not([type=radio]), select, textarea { min-height: 44px; }
+}
+@layer components {
+    .store-container { @apply max-w-7xl mx-auto px-5 sm:px-8 lg:px-10; }
+    .kicker { @apply text-xs font-semibold uppercase tracking-[.2em] text-pamasoul-600; }
+    .button-primary { @apply inline-flex min-h-[48px] items-center justify-center gap-3 rounded-xl bg-pamasoul-600 px-6 py-3 text-sm font-semibold text-white hover:bg-pamasoul-800 disabled:opacity-50; }
+    .button-secondary { @apply inline-flex min-h-[48px] items-center justify-center gap-3 rounded-xl border border-pamasoul-200 bg-white px-6 py-3 text-sm font-semibold text-pamasoul-800 hover:bg-pamasoul-50; }
+    .motion-control { @apply flex min-h-[44px] items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-pamasoul-700 hover:bg-pamasoul-50; }
+    .form-error { @apply mt-2 text-sm text-red-600; }
+    .commerce-panel { @apply rounded-2xl border border-gray-100 bg-white shadow-sm; }
+}
+html { scroll-behavior: smooth; }
+button, a { transition: color .2s, background-color .2s, border-color .2s, box-shadow .25s, transform .25s; }
+button:not(:disabled):active { transform: translateY(1px); }
+.page-content { animation: page-arrive .4s ease-out; }
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); transition-delay: var(--reveal-delay, 0ms); }
+.reveal.is-visible { opacity: 1; transform: none; }
+.tilt-surface { transform: perspective(900px) rotateX(calc(var(--pointer-y, 0) * -5deg)) rotateY(calc(var(--pointer-x, 0) * 5deg)); transition: transform .32s ease-out; }
+.product-card { box-shadow: 0 4px 20px #41295f06; transition: box-shadow .3s, border-color .3s, transform .3s; }
+.product-card:hover { border-color: #C4A3FF; box-shadow: 0 18px 40px #41295f14; }
+.product-card .product-image { transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+.product-card:hover .product-image { transform: scale(1.055); }
+.hero-scene { isolation: isolate; background: #41295f; }
+.hero-photo { transform: translate3d(calc(var(--pointer-x, 0) * -12px), calc(var(--pointer-y, 0) * -12px), 0) scale(1.06); transition: transform .7s ease-out; }
+.hero-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #41295fe8 5%, #41295fa0 50%, #41295f40), linear-gradient(0deg, #41295f90, transparent 50%); }
+.hero-spotlight { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(500px circle at var(--spot-x, 70%) var(--spot-y, 40%), #c4a3ff28, transparent 70%); mix-blend-mode: screen; }
+.hero-object { transform: translate3d(calc(var(--pointer-x, 0) * 22px), calc(var(--pointer-y, 0) * 22px), 0); transition: transform .55s ease-out; }
+.hero-orbit { border: 1px solid #e1d1ff40; border-radius: 50%; position: absolute; }
+.hero-orbit::before { content: ''; width: 9px; height: 9px; background: #C4A3FF; box-shadow: 0 0 25px #B49AFF; position: absolute; top: 50%; left: -4px; border-radius: 50%; }
+.floating-tag { animation: float-tag 6s ease-in-out infinite; }
+.floating-tag:nth-child(2n) { animation-delay: -3s; }
+.hero-reel { animation: reel-drift 8s ease-in-out infinite; filter: drop-shadow(0 30px 24px #20093740); }
+.marquee-track { display: flex; width: max-content; animation: marquee 35s linear infinite; }
+.marquee-track > div { display: flex; align-items: center; gap: 3rem; padding-right: 3rem; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.story-orb { animation: orb-turn 35s linear infinite; }
+.quantity-value { animation: quantity-pop .22s ease-out; }
+@keyframes page-arrive { from { opacity: .5; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes float-tag { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes reel-drift { 0%, 100% { transform: translateY(0) rotate(-9deg); } 50% { transform: translateY(-14px) rotate(-5deg); } }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes orb-turn { to { transform: rotate(360deg); } }
+@keyframes quantity-pop { from { transform: scale(.85); opacity: .5; } to { transform: scale(1); opacity: 1; } }
+html[data-motion=flow] .tilt-surface { transform: none; }
+html[data-motion=flow] .hero-object { transform: translate3d(calc(var(--pointer-x, 0) * 10px), calc(var(--pointer-y, 0) * 10px), 0); }
+html[data-motion=flow] .hero-reel, html[data-motion=flow] .story-orb, html[data-motion=flow] .marquee-track { animation: none; }
+html[data-motion=calm] .reveal { opacity: 1; transform: none; }
+html[data-motion=calm] .hero-photo { transform: scale(1.06); }
+html[data-motion=calm] .hero-object, html[data-motion=calm] .tilt-surface { transform: none; }
+html[data-motion=calm] .floating-tag, html[data-motion=calm] .hero-reel, html[data-motion=calm] .marquee-track, html[data-motion=calm] .story-orb, html[data-motion=calm] .quantity-value, html[data-motion=calm] .page-content { animation: none; }
+@media (hover: none) { .tilt-surface { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .tilt-surface, .hero-object { transform: none !important; }
+}
+.product-detail-image { transition: transform .5s ease, transform-origin .5s ease; transform-origin: calc(50% + var(--pointer-x, 0) * 50%) calc(50% + var(--pointer-y, 0) * 50%); }
+@media (hover: hover) and (pointer: fine) { html:not([data-motion=calm]) .product-view:hover .product-detail-image { transform: scale(1.15); } }

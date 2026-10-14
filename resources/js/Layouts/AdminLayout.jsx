@@ -1,3 +1,5 @@
+import { Dialog, DialogPanel } from '@headlessui/react';
+import MotionControl from '@/Components/Motion/MotionControl';
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
@@ -52,14 +54,6 @@ export default function AdminLayout({ children }) {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            {/* Mobile sidebar backdrop */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 z-20 bg-gray-900/50 lg:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
-
             {/* Static sidebar for desktop */}
             <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
                 <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
@@ -128,11 +122,9 @@ export default function AdminLayout({ children }) {
             </div>
 
             {/* Mobile sidebar - Same styling as desktop */}
-            <div
-                className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out lg:hidden ${
-                    sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
-            >
+            <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="fixed inset-0 z-50 lg:hidden" aria-label="Administration navigation">
+                <div className="fixed inset-0 bg-pamasoul-dark/50 backdrop-blur-sm" aria-hidden="true" />
+                <DialogPanel transition className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl transition duration-300 data-[closed]:-translate-x-full">
                 <div className="flex h-full flex-col">
                     {/* Sidebar header */}
                     <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
@@ -146,6 +138,7 @@ export default function AdminLayout({ children }) {
                             </span>
                         </Link>
                         <button
+                            aria-label="Close administration menu"
                             onClick={() => setSidebarOpen(false)}
                             className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 transition-colors"
                         >
@@ -202,7 +195,8 @@ export default function AdminLayout({ children }) {
                         </div>
                     </div>
                 </div>
-            </div>
+                </DialogPanel>
+            </Dialog>
 
             {/* Main content area */}
             <div className="lg:pl-64">
@@ -210,6 +204,7 @@ export default function AdminLayout({ children }) {
                 <header className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
                     <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                         <button
+                            aria-label="Open administration menu"
                             onClick={() => setSidebarOpen(true)}
                             className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 transition-colors lg:hidden"
                         >
@@ -224,6 +219,7 @@ export default function AdminLayout({ children }) {
                                 </span>
                             </span>
                             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
+                            <MotionControl />
                             <Link
                                 href="/"
                                 className="text-sm text-gray-500 hover:text-pamasoul-600 transition-colors"
@@ -235,7 +231,7 @@ export default function AdminLayout({ children }) {
                 </header>
 
                 {/* Page content */}
-                <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+                <main className="page-content p-4 sm:p-6 lg:p-8">{children}</main>
             </div>
         </div>
     );

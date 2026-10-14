@@ -18,10 +18,12 @@ class Order extends Model
         'shipping_fee',
         'payment_method',
         'shipping_address',
+        'checkout_token',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
+        'shipping_fee' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -52,7 +54,7 @@ class Order extends Model
 
     public function getFormattedTotalAttribute(): string
     {
-        return '₱' . number_format($this->total, 2);
+        return '₱'.number_format($this->total, 2);
     }
 
     // Scopes
@@ -71,21 +73,25 @@ class Order extends Model
         return $query->where('status', $status);
     }
 
-    // Helper methods
+    protected $appends = ['reference', 'allowed_statuses'];
+
+    public function getReferenceAttribute(): string
+    {
+        return 'PS-'.($this->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function getAllowedStatusesAttribute(): array
+    {
+        return match ($this->status) {
+            'Pending' => $this->payment_method === 'COD' ? ['Paid', 'Shipped'] : ['Paid'],
+            'Paid' => ['Shipped'],
+            'Shipped' => ['Completed'],
+            default => [],
+        };
+    }
+
     public function updateStatus(string $status): bool
     {
-        if (!in_array($status, ['Pending', 'Paid', 'Shipped', 'Completed'])) {
-            return false;
-        }
-
-        $this->update(['status' => $status]);
-        return true;
+        return in_array($status, $this->allowed_statuses, true) && $this->update(['status' => $status]);
     }
-
-    public function canBeCancelled(): bool
-    {
-        return in_array($this->status, ['Pending', 'Paid']);
-    }
-
-    // Future-ready: Add tracking number, shipping method, notes
 }

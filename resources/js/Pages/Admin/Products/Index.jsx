@@ -1,3 +1,4 @@
+import Modal from "@/Components/Modal";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
@@ -18,10 +19,15 @@ import {
     XMarkIcon,
     CheckIcon,
 } from "@heroicons/react/24/outline";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { getProductImageUrl } from "@/helpers/imageHelper";
 
-export default function ProductsIndex({ products, categories, filters }) {
+export default function ProductsIndex({
+    products,
+    categories,
+    filters,
+    inventoryStats,
+}) {
     const [search, setSearch] = useState(filters.search || "");
     const [selectedCategory, setSelectedCategory] = useState(
         filters.category || "",
@@ -43,6 +49,8 @@ export default function ProductsIndex({ products, categories, filters }) {
     const handleSearch = (e) => {
         e.preventDefault();
         router.get("/admin/products", {
+            ...filters,
+            page: 1,
             search,
             category: selectedCategory,
             stock_status: stockStatus,
@@ -78,15 +86,15 @@ export default function ProductsIndex({ products, categories, filters }) {
         router.get("/admin/products");
     };
 
-    const handleBulkDelete = () => {
+    const handleBulkArchive = () => {
         if (selectedProducts.length === 0) {
-            toast.error("Please select products to delete");
+            toast.error("Please select products to archive");
             return;
         }
 
         if (
             confirm(
-                `Delete ${selectedProducts.length} product(s)? This action cannot be undone.`,
+                `Archive ${selectedProducts.length} product(s)? Inventory and order history will be preserved. You can restore it later.`,
             )
         ) {
             router.post(
@@ -94,13 +102,10 @@ export default function ProductsIndex({ products, categories, filters }) {
                 { ids: selectedProducts },
                 {
                     onSuccess: () => {
-                        toast.success(
-                            `${selectedProducts.length} product(s) deleted successfully`,
-                        );
                         setSelectedProducts([]);
                     },
                     onError: () => {
-                        toast.error("Failed to delete products");
+                        toast.error("Failed to archive products");
                     },
                 },
             );
@@ -116,8 +121,13 @@ export default function ProductsIndex({ products, categories, filters }) {
     };
 
     const submitBulkStockUpdate = () => {
-        const stockValue = parseInt(bulkStockValue);
-        if (isNaN(stockValue) || stockValue < 0) {
+        const stockValue = Number(bulkStockValue);
+        if (
+            bulkStockValue === "" ||
+            !Number.isInteger(stockValue) ||
+            stockValue < 0 ||
+            stockValue > 999999
+        ) {
             toast.error("Please enter a valid stock quantity");
             return;
         }
@@ -132,9 +142,6 @@ export default function ProductsIndex({ products, categories, filters }) {
             { products: productsData },
             {
                 onSuccess: () => {
-                    toast.success(
-                        `${selectedProducts.length} product(s) stock updated to ${stockValue}`,
-                    );
                     setShowBulkStockModal(false);
                     setBulkStockValue("");
                     setSelectedProducts([]);
@@ -147,15 +154,7 @@ export default function ProductsIndex({ products, categories, filters }) {
     };
 
     const handleExport = () => {
-        router.get(
-            "/admin/products/export",
-            {},
-            {
-                onSuccess: () => {
-                    toast.success("Products exported successfully");
-                },
-            },
-        );
+        window.location.assign("/admin/products/export/csv");
     };
 
     const handleToggleSelectAll = () => {
@@ -177,6 +176,12 @@ export default function ProductsIndex({ products, categories, filters }) {
     };
 
     const getStockBadge = (product) => {
+        if (product.is_active === false)
+            return {
+                text: "Archived",
+                color: "bg-gray-100 text-gray-600",
+                icon: ArchiveBoxIcon,
+            };
         if (product.stock === 0) {
             return {
                 text: "Out of Stock",
@@ -198,12 +203,15 @@ export default function ProductsIndex({ products, categories, filters }) {
         };
     };
 
-    const hasActiveFilters = search || selectedCategory || stockStatus;
+    const hasActiveFilters =
+        search ||
+        selectedCategory ||
+        stockStatus ||
+        filters.max_stock !== undefined;
 
     return (
         <AdminLayout>
             <Head title="Products" />
-            <Toaster position="top-right" />
 
             <div className="space-y-6">
                 {/* Header */}
@@ -217,13 +225,13 @@ export default function ProductsIndex({ products, categories, filters }) {
                         </p>
                     </div>
                     <div className="mt-4 sm:mt-0 flex space-x-3">
-                        {/* <button
+                        <button
                             onClick={handleExport}
                             className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
                         >
                             <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
                             Export CSV
-                        </button> */}
+                        </button>
                         <Link
                             href="/admin/products/create"
                             className="inline-flex items-center rounded-md bg-pamasoul-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-pamasoul-500"
@@ -246,7 +254,7 @@ export default function ProductsIndex({ products, categories, filters }) {
                                     Total Products
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {products.total}
+                                    {inventoryStats.total}
                                 </p>
                             </div>
                         </div>
@@ -261,10 +269,7 @@ export default function ProductsIndex({ products, categories, filters }) {
                                     In Stock
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {
-                                        products.data.filter((p) => p.stock > 5)
-                                            .length
-                                    }
+                                    {inventoryStats.inStock}
                                 </p>
                             </div>
                         </div>
@@ -279,11 +284,7 @@ export default function ProductsIndex({ products, categories, filters }) {
                                     Low Stock
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {
-                                        products.data.filter(
-                                            (p) => p.stock > 0 && p.stock <= 5,
-                                        ).length
-                                    }
+                                    {inventoryStats.lowStock}
                                 </p>
                             </div>
                         </div>
@@ -298,11 +299,7 @@ export default function ProductsIndex({ products, categories, filters }) {
                                     Out of Stock
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {
-                                        products.data.filter(
-                                            (p) => p.stock === 0,
-                                        ).length
-                                    }
+                                    {inventoryStats.outOfStock}
                                 </p>
                             </div>
                         </div>
@@ -313,7 +310,7 @@ export default function ProductsIndex({ products, categories, filters }) {
                 {selectedProducts.length > 0 && (
                     <div className="rounded-lg bg-pamasoul-50 p-4 shadow-sm">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
+                            <div className="flex flex-wrap items-center gap-3">
                                 <span className="text-sm font-medium text-pamasoul-800">
                                     {selectedProducts.length} product(s)
                                     selected
@@ -326,11 +323,11 @@ export default function ProductsIndex({ products, categories, filters }) {
                                     Update Stock
                                 </button>
                                 <button
-                                    onClick={handleBulkDelete}
+                                    onClick={handleBulkArchive}
                                     className="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50 border border-red-300"
                                 >
                                     <TrashIcon className="mr-1.5 h-4 w-4" />
-                                    Delete
+                                    Archive
                                 </button>
                             </div>
                             <button
@@ -409,6 +406,7 @@ export default function ProductsIndex({ products, categories, filters }) {
                                     <option value="low_stock">
                                         Low Stock (1-5)
                                     </option>
+                                    <option value="archived">Archived</option>
                                     <option value="out_of_stock">
                                         Out of Stock (0)
                                     </option>
@@ -524,7 +522,7 @@ export default function ProductsIndex({ products, categories, filters }) {
                                                     className="h-12 w-12 object-cover rounded-lg bg-gray-100"
                                                     onError={(e) => {
                                                         e.target.src =
-                                                            "https://placehold.co/100x100?text=No+Image";
+                                                            "/images/product-placeholder.svg";
                                                     }}
                                                 />
                                             </td>
@@ -568,6 +566,31 @@ export default function ProductsIndex({ products, categories, filters }) {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4 text-right text-sm space-x-2">
+                                                <button
+                                                    onClick={() =>
+                                                        router.post(
+                                                            `/admin/products/${product.id}/toggle-availability`,
+                                                            {},
+                                                            {
+                                                                preserveScroll: true,
+                                                                onError: (
+                                                                    errors,
+                                                                ) =>
+                                                                    toast.error(
+                                                                        Object.values(
+                                                                            errors,
+                                                                        )[0] ||
+                                                                            "Could not update availability.",
+                                                                    ),
+                                                            },
+                                                        )
+                                                    }
+                                                    className="rounded-lg px-3 py-2 text-xs text-pamasoul-700 hover:bg-pamasoul-50"
+                                                >
+                                                    {product.is_active
+                                                        ? "Archive"
+                                                        : "Restore"}
+                                                </button>
                                                 <Link
                                                     href={`/admin/products/${product.id}/edit`}
                                                     className="text-blue-600 hover:text-blue-900 inline-flex items-center"
@@ -579,23 +602,17 @@ export default function ProductsIndex({ products, categories, filters }) {
                                                     onClick={() => {
                                                         if (
                                                             confirm(
-                                                                `Delete "${product.name}"? This action cannot be undone.`,
+                                                                `Archive "${product.name}"? Inventory and order history will be preserved. You can restore it later.`,
                                                             )
                                                         ) {
                                                             router.delete(
                                                                 `/admin/products/${product.id}`,
-                                                                {
-                                                                    onSuccess:
-                                                                        () =>
-                                                                            toast.success(
-                                                                                "Product deleted successfully",
-                                                                            ),
-                                                                },
+                                                                {},
                                                             );
                                                         }
                                                     }}
                                                     className="text-red-600 hover:text-red-900 inline-flex items-center"
-                                                    title="Delete"
+                                                    title="Archive"
                                                 >
                                                     <TrashIcon className="h-4 w-4" />
                                                 </button>
@@ -647,68 +664,61 @@ export default function ProductsIndex({ products, categories, filters }) {
             </div>
 
             {/* Bulk Stock Update Modal */}
-            {showBulkStockModal && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                        <div
-                            className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                            onClick={() => setShowBulkStockModal(false)}
-                        />
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <div className="sm:flex sm:items-start">
-                                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-pamasoul-100 sm:mx-0 sm:h-10 sm:w-10">
-                                        <ArrowPathIcon className="h-6 w-6 text-pamasoul-600" />
-                                    </div>
-                                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                        <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                            Update Stock Quantity
-                                        </h3>
-                                        <div className="mt-2">
-                                            <p className="text-sm text-gray-500">
-                                                Set new stock quantity for{" "}
-                                                {selectedProducts.length}{" "}
-                                                selected product(s).
-                                            </p>
-                                            <div className="mt-4">
-                                                <label className="block text-sm font-medium text-gray-700">
-                                                    Stock Quantity
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    value={bulkStockValue}
-                                                    onChange={(e) =>
-                                                        setBulkStockValue(
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    min="0"
-                                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pamasoul-500 focus:ring-pamasoul-500 sm:text-sm"
-                                                    placeholder="Enter stock quantity"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+            <Modal
+                show={showBulkStockModal}
+                onClose={() => setShowBulkStockModal(false)}
+                maxWidth="lg"
+                label="Update inventory"
+            >
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div className="sm:flex sm:items-start">
+                        <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-pamasoul-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <ArrowPathIcon className="h-6 w-6 text-pamasoul-600" />
+                        </div>
+                        <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                Update Stock Quantity
+                            </h3>
+                            <div className="mt-2">
+                                <p className="text-sm text-gray-500">
+                                    Set new stock quantity for{" "}
+                                    {selectedProducts.length} selected
+                                    product(s).
+                                </p>
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Stock Quantity
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={bulkStockValue}
+                                        onChange={(e) =>
+                                            setBulkStockValue(e.target.value)
+                                        }
+                                        min="0"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pamasoul-500 focus:ring-pamasoul-500 sm:text-sm"
+                                        placeholder="Enter stock quantity"
+                                    />
                                 </div>
-                            </div>
-                            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                <button
-                                    onClick={submitBulkStockUpdate}
-                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pamasoul-600 text-base font-medium text-white hover:bg-pamasoul-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pamasoul-500 sm:ml-3 sm:w-auto sm:text-sm"
-                                >
-                                    Update Stock
-                                </button>
-                                <button
-                                    onClick={() => setShowBulkStockModal(false)}
-                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pamasoul-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                                >
-                                    Cancel
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            )}
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button
+                        onClick={submitBulkStockUpdate}
+                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pamasoul-600 text-base font-medium text-white hover:bg-pamasoul-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pamasoul-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                        Update Stock
+                    </button>
+                    <button
+                        onClick={() => setShowBulkStockModal(false)}
+                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pamasoul-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </Modal>
         </AdminLayout>
     );
 }

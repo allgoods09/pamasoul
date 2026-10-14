@@ -1,18 +1,18 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { 
-    ArrowLeftIcon, 
-    EnvelopeIcon, 
-    CalendarIcon, 
-    ShoppingCartIcon, 
+import {
+    ArrowLeftIcon,
+    EnvelopeIcon,
+    CalendarIcon,
+    ShoppingCartIcon,
     CurrencyDollarIcon,
     UserCircleIcon,
     ShieldCheckIcon,
     MapPinIcon,
     PhoneIcon
 } from '@heroicons/react/24/outline';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 export default function UsersShow({ user, orders }) {
     const [updating, setUpdating] = useState(false);
@@ -34,14 +34,14 @@ export default function UsersShow({ user, orders }) {
     const handleRoleChange = (newRole) => {
         if (updating) return;
         setUpdating(true);
-        
+
         router.patch(`/admin/users/${user.id}/role`, { role: newRole }, {
             onSuccess: () => {
-                toast.success(`User role updated to ${newRole}`);
+
                 setUpdating(false);
             },
-            onError: () => {
-                toast.error('Failed to update role');
+            onError: errors => {
+                toast.error(errors.role || 'Failed to update role');
                 setUpdating(false);
             }
         });
@@ -50,7 +50,7 @@ export default function UsersShow({ user, orders }) {
     return (
         <AdminLayout>
             <Head title={`User: ${user.name}`} />
-            <Toaster position="top-right" />
+
 
             <div className="space-y-6">
                 {/* Header */}

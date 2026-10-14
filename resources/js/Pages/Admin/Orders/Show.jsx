@@ -14,7 +14,7 @@ import {
     CreditCardIcon,
     CalendarIcon,
 } from "@heroicons/react/24/outline";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function OrdersShow({ order, shippingConfig }) {
     const [updating, setUpdating] = useState(false);
@@ -51,11 +51,11 @@ export default function OrdersShow({ order, shippingConfig }) {
             { status: newStatus },
             {
                 onSuccess: () => {
-                    toast.success(`Order status updated to ${newStatus}`);
+
                     setUpdating(false);
                 },
-                onError: () => {
-                    toast.error("Failed to update order status");
+                onError: errors => {
+                    toast.error(errors.status || "Failed to update order status");
                     setUpdating(false);
                 },
             },
@@ -73,13 +73,11 @@ export default function OrdersShow({ order, shippingConfig }) {
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success(
-                        `Order status email sent to ${order.user?.email}`,
-                    );
+
                 },
                 onError: (error) => {
-                    console.error("Email error:", error);
-                    toast.error("Failed to send email. Please try again.");
+
+                    toast.error(error.email || "Failed to send email. Please try again.");
                 },
             },
         );
@@ -98,13 +96,13 @@ export default function OrdersShow({ order, shippingConfig }) {
 
     // Use stored order total and calculate shipping fee as the difference
     const orderTotal = Number(order.total) || 0;
-    const shippingFee = orderTotal - itemsSubtotal;
+    const shippingFee = Number(order.shipping_fee);
     const total = orderTotal;
 
     return (
         <AdminLayout>
             <Head title={`Order #${order.id}`} />
-            <Toaster position="top-right" />
+
 
             <div className="space-y-6">
                 {/* Header */}
@@ -119,7 +117,7 @@ export default function OrdersShow({ order, shippingConfig }) {
                         </Link>
                         <div>
                             <h1 className="text-2xl font-semibold text-gray-900">
-                                Order #{order.id}
+                                Order {order.reference || `#${order.id}`}
                             </h1>
                             <p className="text-sm text-gray-500 mt-1">
                                 Placed on{" "}
@@ -167,7 +165,7 @@ export default function OrdersShow({ order, shippingConfig }) {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <label className="text-sm font-medium text-gray-700">
                                 Update Status:
                             </label>
@@ -176,13 +174,11 @@ export default function OrdersShow({ order, shippingConfig }) {
                                 onChange={(e) =>
                                     handleStatusUpdate(e.target.value)
                                 }
-                                disabled={updating}
+                                disabled={updating || !order.allowed_statuses?.length}
                                 className={`rounded-md border-0 px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-pamasoul-500 cursor-pointer ${statusColor?.bg} ${statusColor?.text}`}
                             >
-                                <option value="Pending">Pending</option>
-                                <option value="Paid">Paid</option>
-                                <option value="Shipped">Shipped</option>
-                                <option value="Completed">Completed</option>
+                                <option value={order.status}>{order.status}</option>
+                                {order.allowed_statuses?.map(status => <option key={status} value={status}>{status}</option>)}
                             </select>
                         </div>
                     </div>
@@ -247,7 +243,7 @@ export default function OrdersShow({ order, shippingConfig }) {
                                     Shipping Address
                                 </p>
                                 <p className="text-sm text-gray-600 mt-1">
-                                    {order.shipping_address}
+                                    <span className="whitespace-pre-line">{order.shipping_address}</span>
                                 </p>
                             </div>
                             <div>
@@ -321,7 +317,7 @@ export default function OrdersShow({ order, shippingConfig }) {
                                     <tr key={item.id}>
                                         <td className="px-6 py-4">
                                             <div className="text-sm font-medium text-gray-900">
-                                                {item.product?.name}
+                                                {item.product_name || item.product?.name}
                                             </div>
                                             <div className="text-xs text-gray-500">
                                                 {item.product?.category?.name}

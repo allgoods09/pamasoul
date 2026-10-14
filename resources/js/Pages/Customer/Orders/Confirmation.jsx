@@ -22,7 +22,7 @@ export default function OrderConfirmation({ order }) {
     // Calculate shipping fee from the stored order total
     // (order.total already includes the correct shipping fee from checkout)
     const orderTotal = Number(order.total) || 0;
-    const shippingFee = orderTotal - itemsSubtotal;
+    const shippingFee = Number(order.shipping_fee);
     const isFreeShipping = shippingFee === 0;
 
     return (
@@ -54,7 +54,7 @@ export default function OrderConfirmation({ order }) {
                                         Order Number
                                     </p>
                                     <p className="text-lg font-bold text-gray-900">
-                                        #{order.id}
+                                        {order.reference || `#${order.id}`}
                                     </p>
                                 </div>
                                 <div>
@@ -119,11 +119,11 @@ export default function OrderConfirmation({ order }) {
                                                         src={getProductImageUrl(
                                                             item.product,
                                                         )}
-                                                        alt={item.product.name}
+                                                        alt={item.product_name || item.product.name}
                                                         className="h-full w-full object-cover"
                                                         onError={(e) => {
                                                             e.target.src =
-                                                                "https://picsum.photos/id/20/100/100";
+                                                                "/images/product-placeholder.svg";
                                                         }}
                                                     />
                                                 </div>
@@ -132,7 +132,7 @@ export default function OrderConfirmation({ order }) {
                                                         href={`/product/${item.product.slug}`}
                                                         className="text-sm font-semibold text-gray-900 hover:text-pamasoul-600 transition-colors"
                                                     >
-                                                        {item.product.name}
+                                                        {item.product_name || item.product.name}
                                                     </Link>
                                                     <p className="text-xs text-gray-500 mt-1">
                                                         Qty: {item.quantity} × ₱
@@ -205,7 +205,7 @@ export default function OrderConfirmation({ order }) {
                                         </h2>
                                         <div className="bg-gray-50 rounded-lg p-4">
                                             <p className="text-gray-700">
-                                                {order.shipping_address}
+                                                <span className="whitespace-pre-line">{order.shipping_address}</span>
                                             </p>
                                             <div className="flex items-center space-x-2 mt-3 text-sm text-gray-500">
                                                 <TruckIcon className="h-4 w-4" />

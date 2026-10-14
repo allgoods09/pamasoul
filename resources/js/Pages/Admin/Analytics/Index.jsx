@@ -1,3 +1,6 @@
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useMotion } from "@/Components/Motion/MotionProvider";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, router } from "@inertiajs/react";
 import { useState } from "react";
@@ -37,6 +40,7 @@ export default function AnalyticsIndex({
     orderStatusDistribution,
     filters,
 }) {
+    const { mode, reduced } = useMotion();
     const [dateFrom, setDateFrom] = useState(filters.date_from);
     const [dateTo, setDateTo] = useState(filters.date_to);
     const [isExporting, setIsExporting] = useState(false);
@@ -48,13 +52,31 @@ export default function AnalyticsIndex({
         });
     };
 
-    const exportPdf = () => {
+    const exportPdf = async () => {
+        if (isExporting) return;
         setIsExporting(true);
-        window.open(
-            `/admin/analytics/export-pdf?date_from=${dateFrom}&date_to=${dateTo}`,
-            "_blank",
-        );
-        setTimeout(() => setIsExporting(false), 1000);
+        try {
+            const response = await axios.get("/admin/analytics/export-pdf", {
+                params: { date_from: dateFrom, date_to: dateTo },
+                responseType: "blob",
+            });
+            if (!response.headers["content-type"]?.includes("application/pdf"))
+                throw new Error("Invalid PDF response");
+            const url = URL.createObjectURL(response.data);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `analytics-report-${dateFrom}-to-${dateTo}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch {
+            toast.error(
+                "Could not generate the PDF. Check the date range and try again.",
+            );
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const exportCsv = () => {
@@ -321,6 +343,9 @@ export default function AnalyticsIndex({
                                     />
                                     <Legend />
                                     <Area
+                                        isAnimationActive={
+                                            !reduced && mode !== "calm"
+                                        }
                                         type="monotone"
                                         dataKey="sales"
                                         stroke="#3B82F6"
@@ -354,6 +379,9 @@ export default function AnalyticsIndex({
                                             }
                                         />
                                         <Bar
+                                            isAnimationActive={
+                                                !reduced && mode !== "calm"
+                                            }
                                             dataKey="value"
                                             fill="#3B82F6"
                                             name="Sales (₱)"
@@ -421,6 +449,9 @@ export default function AnalyticsIndex({
                                     />
                                     <Legend />
                                     <Bar
+                                        isAnimationActive={
+                                            !reduced && mode !== "calm"
+                                        }
                                         dataKey="sales"
                                         fill="#3B82F6"
                                         name="Sales (₱)"
@@ -443,6 +474,9 @@ export default function AnalyticsIndex({
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
+                                            isAnimationActive={
+                                                !reduced && mode !== "calm"
+                                            }
                                             data={paymentChartData}
                                             cx="50%"
                                             cy="50%"
@@ -486,6 +520,9 @@ export default function AnalyticsIndex({
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
+                                            isAnimationActive={
+                                                !reduced && mode !== "calm"
+                                            }
                                             data={statusChartData}
                                             cx="50%"
                                             cy="50%"

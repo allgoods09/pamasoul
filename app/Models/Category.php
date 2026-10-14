@@ -12,6 +12,13 @@ class Category extends Model
 {
     use HasFactory, HasSlug;
 
+    public const CATALOG_SLUGS = ['fishing-rods', 'reels', 'fishing-lines'];
+
+    public function scopeCatalog($query)
+    {
+        return $query->whereIn('slug', self::CATALOG_SLUGS);
+    }
+
     protected $fillable = ['name', 'slug'];
 
     public function getSlugOptions(): SlugOptions

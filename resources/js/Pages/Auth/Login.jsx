@@ -48,7 +48,8 @@ export default function Login({ status, canResetPassword }) {
                             type="email"
                             name="email"
                             value={data.email}
-                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-pamasoul-500 focus:ring-pamasoul-500"
+                            required
                             autoComplete="username"
                             isFocused={true}
                             onChange={(e) => setData('email', e.target.value)}
@@ -68,7 +69,8 @@ export default function Login({ status, canResetPassword }) {
                             type="password"
                             name="password"
                             value={data.password}
-                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                            className="block w-full rounded-lg border-gray-300 pl-10 focus:border-pamasoul-500 focus:ring-pamasoul-500"
+                            required
                             autoComplete="current-password"
                             onChange={(e) => setData('password', e.target.value)}
                         />
@@ -82,7 +84,7 @@ export default function Login({ status, canResetPassword }) {
                             name="remember"
                             checked={data.remember}
                             onChange={(e) => setData('remember', e.target.checked)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="rounded border-gray-300 text-pamasoul-600 focus:ring-pamasoul-500"
                         />
                         <span className="ms-2 text-sm text-gray-600">Remember me</span>
                     </label>
@@ -90,15 +92,15 @@ export default function Login({ status, canResetPassword }) {
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="text-sm text-blue-600 hover:text-blue-800"
+                            className="text-sm text-pamasoul-600 hover:text-pamasoul-800"
                         >
                             Forgot password?
                         </Link>
                     )}
                 </div>
 
-                <PrimaryButton 
-                    className="w-full justify-center rounded-lg bg-blue-600 py-2.5 text-sm font-semibold hover:bg-blue-700 focus:ring-blue-500"
+                <PrimaryButton
+                    className="w-full justify-center rounded-lg bg-pamasoul-600 py-2.5 text-sm font-semibold hover:bg-pamasoul-700 focus:ring-pamasoul-500"
                     disabled={processing}
                 >
                     {processing ? 'Signing in...' : 'Sign In'}
@@ -106,7 +108,7 @@ export default function Login({ status, canResetPassword }) {
 
                 <div className="text-center text-sm text-gray-600">
                     Don't have an account?{' '}
-                    <Link href={route('register')} className="font-medium text-blue-600 hover:text-blue-800">
+                    <Link href={route('register')} className="font-medium text-pamasoul-600 hover:text-pamasoul-800">
                         Create an account
                     </Link>
                 </div>

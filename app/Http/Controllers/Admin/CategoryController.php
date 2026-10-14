@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class CategoryController extends Controller
 {
@@ -13,56 +13,35 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $query = Category::withCount('products');
-        
+
         if ($request->filled('search')) {
             $query->search($request->search);
         }
-        
+
         $categories = $query->paginate(10)->withQueryString();
-        
+
         return inertia('Admin/Categories/Index', [
             'categories' => $categories,
             'filters' => $request->only(['search']),
         ]);
     }
-    
-    // Store new category
+
+    // The store has three fixed collections; preserve their slugs and product links.
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:categories',
-        ]);
-        
-        Category::create($validated);
-        
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully!');
+        $data = $request->validate(['name' => 'required|in:Fishing Rods,Reels,Fishing Lines|unique:categories,name']);
+        Category::create($data);
+
+        return back()->with('success', 'Collection restored.');
     }
-    
-    // Update category
+
     public function update(Request $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', Rule::unique('categories')->ignore($category->id)],
-        ]);
-        
-        $category->update($validated);
-        
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category updated successfully!');
+        throw ValidationException::withMessages(['name' => 'Rods, Reels and Lines are fixed collections.']);
     }
-    
-    // Delete category (with product check)
+
     public function destroy(Category $category)
     {
-        if ($category->products()->count() > 0) {
-            return redirect()->back()
-                ->with('error', 'Cannot delete category with associated products. Reassign products first.');
-        }
-        
-        $category->delete();
-        
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category deleted successfully!');
+        throw ValidationException::withMessages(['category' => 'Collections cannot be deleted. Archive individual products instead.']);
     }
 }

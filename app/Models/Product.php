@@ -14,12 +14,16 @@ class Product extends Model
     use HasFactory, HasSlug;
 
     protected $fillable = [
-        'name', 'slug', 'description', 'image', 'price', 'stock', 'category_id'
+        'name', 'slug', 'description', 'image', 'price', 'stock', 'category_id', 'is_active', 'specifications',
     ];
+
+    protected $attributes = ['is_active' => true];
 
     protected $casts = [
         'price' => 'decimal:2',
         'stock' => 'integer',
+        'is_active' => 'boolean',
+        'specifications' => 'array',
     ];
 
     public function getSlugOptions(): SlugOptions
@@ -45,30 +49,35 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    // THIS IS THE IMPORTANT PART - ADD THIS ACCESSOR
+    protected $appends = ['image_url', 'stock_status'];
+
     public function getImageUrlAttribute(): string
     {
-        // If image column has a value, use it
-        if ($this->image && filter_var($this->image, FILTER_VALIDATE_URL)) {
+        if ($this->image && (preg_match('~^https?://~i', $this->image) || str_starts_with($this->image, '/images/'))) {
             return $this->image;
         }
-        
-        // Otherwise return a working placeholder
-        // Using product ID to get different images for each product
-        $imageId = 100 + ($this->id % 100);
-        return "https://picsum.photos/id/{$imageId}/400/300";
+
+        return '/images/product-placeholder.svg';
     }
 
     // Other accessors
     public function getFormattedPriceAttribute(): string
     {
-        return '₱' . number_format($this->price, 2);
+        return '₱'.number_format($this->price, 2);
     }
 
     public function getStockStatusAttribute(): string
     {
-        if ($this->stock <= 0) return 'Out of Stock';
-        if ($this->stock <= 5) return 'Low Stock';
+        if (! $this->is_active) {
+            return 'Unavailable';
+        }
+        if ($this->stock <= 0) {
+            return 'Out of Stock';
+        }
+        if ($this->stock <= 5) {
+            return 'Low Stock';
+        }
+
         return 'In Stock';
     }
 
@@ -80,7 +89,7 @@ class Product extends Model
     // Mutators
     public function setNameAttribute($value)
     {
-        $this->attributes['name'] = ucwords(strtolower($value));
+        $this->attributes['name'] = trim($value);
     }
 
     // Scopes
@@ -106,8 +115,7 @@ class Product extends Model
 
     public function scopeSearch($query, $term)
     {
-        return $query->where('name', 'LIKE', "%{$term}%")
-                     ->orWhere('description', 'LIKE', "%{$term}%");
+        return $query->where(fn ($q) => $q->where('name', 'LIKE', "%{$term}%")->orWhere('description', 'LIKE', "%{$term}%"));
     }
 
     public function scopePriceRange($query, $min, $max)
@@ -120,8 +128,10 @@ class Product extends Model
     {
         if ($this->stock >= $quantity) {
             $this->decrement('stock', $quantity);
+
             return true;
         }
+
         return false;
     }
 

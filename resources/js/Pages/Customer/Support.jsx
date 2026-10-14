@@ -1,228 +1,160 @@
 import CustomerLayout from "@/Layouts/CustomerLayout";
 import { Head } from "@inertiajs/react";
 import { useState } from "react";
-
+import {
+    EnvelopeIcon,
+    PhoneIcon,
+    MapPinIcon,
+} from "@heroicons/react/24/outline";
+import Reveal from "@/Components/Motion/Reveal";
 export default function Support() {
-    const [formData, setFormData] = useState({
+    const [data, setData] = useState({
         name: "",
         email: "",
         subject: "",
         message: "",
     });
-    const [submitted, setSubmitted] = useState(false);
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
-
-    const handleSubmit = (e) => {
+    const [opened, setOpened] = useState(false);
+    const submit = (e) => {
         e.preventDefault();
-        // Here you would normally send to your backend
-        console.log("Support form submitted:", formData);
-        setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 3000);
-        setFormData({ name: "", email: "", subject: "", message: "" });
+        const body = `${data.message}\n\nFrom: ${data.name}\nReply to: ${data.email}`;
+        window.location.href = `mailto:support@pamasoul.com?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(body)}`;
+        setOpened(true);
     };
-
     return (
         <CustomerLayout>
-            <Head title="Customer Support - Pamasoul" />
-
-            <div className="bg-gray-50 min-h-screen py-12">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                            Customer Support
-                        </h1>
-                        <div className="w-24 h-1 bg-pamasoul-600 mx-auto"></div>
-                        <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-                            Have questions? We're here to help! Reach out to us
-                            through any of the channels below.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                        {/* Email Support */}
-                        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                            <div className="text-4xl mb-3">✉️</div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                Email Us
-                            </h3>
-                            <p className="text-gray-600 mb-2">
-                                Get a response within 24 hours
-                            </p>
-                            <a
-                                href="mailto:support@pamasoul.com"
-                                className="text-pamasoul-600 hover:text-pamasoul-800"
-                            >
-                                support@pamasoul.com
-                            </a>
-                        </div>
-
-                        {/* Phone Support */}
-                        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                            <div className="text-4xl mb-3">📞</div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                Call Us
-                            </h3>
-                            <p className="text-gray-600 mb-2">
-                                Mon-Sat, 9AM - 6PM
-                            </p>
-                            <a
-                                href="tel:+639389317261"
-                                className="text-pamasoul-600 hover:text-pamasoul-800"
-                            >
-                                (+63) 938 931 7261
-                            </a>
-                        </div>
-
-                        {/* Live Chat */}
-                        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                            <div className="text-4xl mb-3">💬</div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                Live Chat
-                            </h3>
-                            <p className="text-gray-600 mb-2">
-                                Available 24/7 for quick questions
-                            </p>
-                            <button className="text-pamasoul-600 hover:text-pamasoul-800">
-                                Start a conversation →
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Contact Form */}
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                        <div className="p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                                Send Us a Message
+            <Head title="Customer support" />
+            <div className="store-container py-12 sm:py-16">
+                <Reveal>
+                    <p className="kicker mb-3">Let’s talk fishing</p>
+                    <h1 className="text-3xl sm:text-4xl font-bold text-pamasoul-dark tracking-tight">
+                        A little help before your next cast.
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-4 max-w-xl">
+                        Questions about your gear or an order? Use the existing
+                        contact details below to reach the PamaSoul team.
+                    </p>
+                </Reveal>
+                <div className="grid sm:grid-cols-3 gap-5 mt-9 mb-10">
+                    {[
+                        [
+                            EnvelopeIcon,
+                            "Email",
+                            "support@pamasoul.com",
+                            "mailto:support@pamasoul.com",
+                        ],
+                        [
+                            PhoneIcon,
+                            "Phone",
+                            "(+63) 938 931 7261",
+                            "tel:+639389317261",
+                        ],
+                        [
+                            MapPinIcon,
+                            "Visit our home waters",
+                            "Tubigon, Bohol, Philippines",
+                            null,
+                        ],
+                    ].map(([Icon, title, text, href]) => (
+                        <Reveal key={title} className="commerce-panel p-6">
+                            <Icon className="h-6 w-6 text-pamasoul-600 mb-4" />
+                            <h2 className="text-sm font-semibold text-pamasoul-dark">
+                                {title}
                             </h2>
-
-                            {submitted && (
-                                <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
-                                    Thank you! Your message has been sent. We'll
-                                    get back to you soon.
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Your Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pamasoul-500 focus:border-pamasoul-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Email Address *
-                                        </label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pamasoul-500 focus:border-pamasoul-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Subject *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="subject"
-                                        value={formData.subject}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pamasoul-500 focus:border-pamasoul-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Message *
-                                    </label>
-                                    <textarea
-                                        name="message"
-                                        value={formData.message}
-                                        onChange={handleChange}
-                                        required
-                                        rows="6"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-pamasoul-500 focus:border-pamasoul-500"
-                                    ></textarea>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="w-full md:w-auto px-6 py-3 bg-pamasoul-600 text-white rounded-lg hover:bg-pamasoul-800 transition-colors"
+                            {href ? (
+                                <a
+                                    className="text-sm text-pamasoul-700 mt-3 block break-all"
+                                    href={href}
                                 >
-                                    Send Message
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    {/* FAQ Section */}
-                    <div className="mt-12 bg-white rounded-lg shadow-lg overflow-hidden">
-                        <div className="p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                                Frequently Asked Questions
-                            </h2>
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="font-semibold text-gray-900 mb-2">
-                                        How long does shipping take?
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Metro Manila: 3-7 business days.
-                                        Provincial: 5-10 business days.
-                                    </p>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900 mb-2">
-                                        Do you ship internationally?
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Currently, we only ship within the
-                                        Philippines.
-                                    </p>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900 mb-2">
-                                        Can I change or cancel my order?
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Yes, within 2 hours of placing the
-                                        order. Contact us immediately.
-                                    </p>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900 mb-2">
-                                        Do you have a physical store?
-                                    </h3>
-                                    <p className="text-gray-600">
-                                        Yes! We're located in Tubigon, Bohol.
-                                        Visit us Monday-Saturday, 9AM-6PM.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                    {text}
+                                </a>
+                            ) : (
+                                <p className="text-sm text-gray-500 mt-3">
+                                    {text}
+                                </p>
+                            )}
+                        </Reveal>
+                    ))}
                 </div>
+                <form
+                    onSubmit={submit}
+                    className="commerce-panel max-w-3xl p-6 sm:p-8"
+                >
+                    <h2 className="text-xl font-semibold text-pamasoul-dark">
+                        Write an email
+                    </h2>
+                    <p className="text-xs text-gray-500 leading-6 mt-2 mb-6">
+                        This opens your email app with a draft. You’ll review
+                        and send it there. This website does not submit support
+                        messages or provide live chat.
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-5">
+                        {[
+                            ["name", "Your name", "text"],
+                            ["email", "Reply email", "email"],
+                            ["subject", "Subject", "text"],
+                        ].map(([key, label, type]) => (
+                            <div
+                                key={key}
+                                className={
+                                    key === "subject" ? "sm:col-span-2" : ""
+                                }
+                            >
+                                <label
+                                    htmlFor={`support-${key}`}
+                                    className="text-sm font-medium"
+                                >
+                                    {label}
+                                </label>
+                                <input
+                                    id={`support-${key}`}
+                                    type={type}
+                                    value={data[key]}
+                                    required
+                                    maxLength={150}
+                                    onChange={(e) =>
+                                        setData({
+                                            ...data,
+                                            [key]: e.target.value,
+                                        })
+                                    }
+                                    className="w-full rounded-xl border-gray-200 mt-2 focus:ring-pamasoul-500"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <label
+                        htmlFor="support-message"
+                        className="block text-sm font-medium mt-5"
+                    >
+                        Your message
+                    </label>
+                    <textarea
+                        id="support-message"
+                        value={data.message}
+                        onChange={(e) =>
+                            setData({ ...data, message: e.target.value })
+                        }
+                        rows={5}
+                        required
+                        maxLength={2000}
+                        className="w-full rounded-xl border-gray-200 mt-2 focus:ring-pamasoul-500"
+                    />
+                    <button className="button-primary mt-5">
+                        <EnvelopeIcon className="w-4 h-4" />
+                        Open email draft
+                    </button>
+                    {opened && (
+                        <p
+                            role="status"
+                            className="text-xs text-pamasoul-700 mt-4"
+                        >
+                            An email draft was requested. If your email app
+                            didn’t open, email support@pamasoul.com directly.
+                            Your message has not been sent by this website.
+                        </p>
+                    )}
+                </form>
             </div>
         </CustomerLayout>
     );

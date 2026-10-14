@@ -26,7 +26,7 @@ export default function Invoice({ order }) {
 
     // Use stored total, calculate shipping fee as difference
     const orderTotal = Number(order.total) || 0;
-    const shippingFee = orderTotal - subtotal;
+    const shippingFee = Number(order.shipping_fee);
 
     return (
         <>
@@ -83,7 +83,7 @@ export default function Invoice({ order }) {
                                         INVOICE
                                     </p>
                                     <p className="text-xl font-bold text-gray-900">
-                                        #{order.id}
+                                        {order.reference || `#${order.id}`}
                                     </p>
                                     <p className="text-xs text-gray-400 mt-1">
                                         Date:{" "}
@@ -158,7 +158,7 @@ export default function Invoice({ order }) {
                                                 className="border-b border-gray-100"
                                             >
                                                 <td className="py-3 text-sm text-gray-800">
-                                                    {item.product?.name ||
+                                                    {item.product_name || item.product?.name ||
                                                         "Product"}
                                                 </td>
                                                 <td className="py-3 text-sm text-gray-600 text-right">

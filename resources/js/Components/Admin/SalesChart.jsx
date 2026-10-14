@@ -1,3 +1,4 @@
+import { useMotion } from '@/Components/Motion/MotionProvider';
 import React from 'react';
 import {
     AreaChart,
@@ -10,11 +11,12 @@ import {
 } from 'recharts';
 
 export default function SalesChart({ monthlySales }) {
+    const { mode, reduced } = useMotion();
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+
     const chartData = monthlySales.map(sale => ({
-        month: monthNames[sale.month - 1],
-        sales: sale.total,
+        month: sale.month,
+        sales: Number(sale.total),
     }));
 
     return (
@@ -25,18 +27,18 @@ export default function SalesChart({ monthlySales }) {
                     <AreaChart data={chartData}>
                         <defs>
                             <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="#8A6BCC" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#8A6BCC" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
                         <YAxis />
                         <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
-                        <Area
+                        <Area isAnimationActive={!reduced && mode !== "calm"}
                             type="monotone"
                             dataKey="sales"
-                            stroke="#3B82F6"
+                            stroke="#8A6BCC"
                             fillOpacity={1}
                             fill="url(#colorSales)"
                         />

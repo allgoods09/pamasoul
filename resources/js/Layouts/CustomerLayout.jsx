@@ -1,577 +1,259 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
-import { useState, useRef, useEffect } from "react";
-import { Link, usePage, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
+import { useState } from "react";
 import {
-    ShoppingBagIcon,
-    ShoppingCartIcon,
-    UserIcon,
-    MagnifyingGlassIcon,
+    Disclosure,
+    DisclosureButton,
+    DisclosurePanel,
+    Menu,
+    MenuButton,
+    MenuItems,
+    MenuItem,
+} from "@headlessui/react";
+import {
     Bars3Icon,
     XMarkIcon,
+    ShoppingCartIcon,
+    UserIcon,
     ChevronDownIcon,
-    UserCircleIcon,
-    ClipboardDocumentListIcon,
-    Cog6ToothIcon,
-    ArrowRightOnRectangleIcon,
-    ShieldCheckIcon,
+    MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import AdBanner from "@/Components/AdBanner";
-
+import MotionControl from "@/Components/Motion/MotionControl";
+const categories = [
+    ["Rods", "fishing-rods"],
+    ["Reels", "reels"],
+    ["Lines", "fishing-lines"],
+];
 export default function CustomerLayout({ children }) {
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [searchOpen, setSearchOpen] = useState(false);
-    const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
-    const buttonRef = useRef(null);
-
-    const { hideAds } = usePage().props;
-    const { url, props } = usePage();
-    const user = props.auth.user;
-    const cartCount = props.cartCount || 0;
-    const shippingConfig = props.shippingConfig || {
-        free_threshold: 5000,
-        base_fee: 50,
+    const { auth, cartCount = 0, shippingConfig } = usePage().props;
+    const { url } = usePage();
+    const [search, setSearch] = useState("");
+    const handleCategoryClick = (slug) =>
+        router.get("/shop", { category: slug });
+    const account = auth.user
+        ? [
+              ["/profile", "My profile"],
+              ["/my-orders", "My orders"],
+              ...(auth.user.role === "admin"
+                  ? [["/admin/dashboard", "Administration"]]
+                  : []),
+          ]
+        : [
+              ["/login", "Sign in"],
+              ["/register", "Create account"],
+          ];
+    const submitSearch = (e) => {
+        e.preventDefault();
+        router.get("/shop", { search: search.trim() });
     };
-    const currentPage = url.split("/")[1] || "home";
-
-    // Get user initials (first letter of first name + first letter of last name)
-    const getUserInitials = () => {
-        if (!user?.name) return "?";
-        const nameParts = user.name.trim().split(" ");
-        if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
-        return (
-            nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
-        ).toUpperCase();
-    };
-
-    const freeThreshold = shippingConfig.free_threshold;
-    const formattedThreshold = new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP",
-        minimumFractionDigits: 0,
-    }).format(freeThreshold);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target) &&
-                buttonRef.current &&
-                !buttonRef.current.contains(event.target)
-            ) {
-                setUserDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () =>
-            document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    // UPDATED: Use slug instead of ID
-    const handleCategoryClick = (categorySlug) => {
-        router.get("/shop", { category: categorySlug });
-    };
-
-    const getCurrentCategory = () => {
-        const params = new URLSearchParams(window.location.search);
-        return params.get("category");
-    };
-
-    const isActive = (href) => {
-        if (!href) return false;
-        if (href === "/") return url === href;
-        return url.startsWith(href);
-    };
-
-    const isShopActive = () => {
-        return (
-            url === "/shop" ||
-            (url.startsWith("/shop") && !getCurrentCategory())
-        );
-    };
-
-    // UPDATED: Compare slugs instead of IDs
-    const isCategoryActive = (categorySlug) => {
-        return getCurrentCategory() === categorySlug;
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900">
-            {/* Top Header */}
-            <header className="bg-white shadow-sm sticky top-0 z-50">
-                {/* Top bar with dynamic shipping message */}
-                <div className="bg-pamasoul font-semibold text-gray-900 text-sm py-2">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center">
-                            <p className="hidden sm:block">
-                                🐟 Free shipping on orders over{" "}
-                                {formattedThreshold}!
-                            </p>
-                            <p>🎣 Pamasoul - Premium Fishing Tackle</p>
-                            <p className="hidden sm:block">
-                                📞 Customer Support: (+63) 9389317261
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main header */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        {/* Logo */}
-                        <Link href="/" className="flex items-center space-x-2">
-                            <ApplicationLogo />
-                            <span className="text-xl font-bold text-gray-900 hidden sm:block">
-                                Pamasoul
-                            </span>
-                            <span className="text-xs text-pamasoul-600 font-bold hidden lg:block">
-                                Fishing Tackle
-                            </span>
-                        </Link>
-
-                        {/* Desktop Navigation - UPDATED with slugs */}
-                        <nav className="hidden md:flex space-x-8">
+        <div className="min-h-screen flex flex-col bg-gray-50">
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] button-primary"
+            >
+                Skip to content
+            </a>
+            <div className="bg-pamasoul-dark text-white/90 text-center text-[10px] sm:text-xs py-2 px-4 tracking-wide">
+                Fishing is in our soul{" "}
+                <span className="mx-3 text-pamasoul-300">✦</span>
+                {Number(shippingConfig?.free_threshold) > 0
+                    ? `Free shipping from ₱${Number(shippingConfig.free_threshold).toLocaleString("en-PH")}`
+                    : "Rods, reels & lines · Bohol, Philippines"}
+            </div>
+            <Disclosure
+                as="header"
+                className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-pamasoul-100 shadow-sm"
+            >
+                {({ open, close }) => (
+                    <>
+                        <div className="store-container flex h-[76px] items-center gap-1 sm:gap-3">
                             <Link
                                 href="/"
-                                className={`text-sm font-medium transition-colors py-1 ${
-                                    isActive("/")
-                                        ? "text-pamasoul border-b-2 border-pamasoul-600"
-                                        : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
-                                }`}
+                                className="flex items-center gap-2 mr-auto shrink-0"
+                                aria-label="PamaSoul home"
                             >
-                                Home
+                                <ApplicationLogo className="h-9 sm:h-11 w-auto" />
+                                <span className="hidden min-[400px]:block text-lg sm:text-xl font-bold text-pamasoul-dark">
+                                    PamaSoul
+                                    <span className="text-pamasoul-400">.</span>
+                                    <span className="block text-[8px] font-medium tracking-[.2em] uppercase text-pamasoul-600">
+                                        Fishing tackle
+                                    </span>
+                                </span>
                             </Link>
-                            <Link
-                                href="/shop"
-                                className={`text-sm font-medium transition-colors py-1 ${
-                                    isShopActive()
-                                        ? "text-pamasoul border-b-2 border-pamasoul-600"
-                                        : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
-                                }`}
+                            <nav
+                                aria-label="Main navigation"
+                                className="hidden lg:flex gap-6 items-center text-sm font-medium mr-3"
                             >
-                                Shop
-                            </Link>
-                            <button
-                                onClick={() =>
-                                    handleCategoryClick("fishing-rods")
-                                }
-                                className={`text-sm font-medium transition-colors py-1 ${
-                                    isCategoryActive("fishing-rods")
-                                        ? "text-pamasoul border-b-2 border-pamasoul-600"
-                                        : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
-                                }`}
-                            >
-                                Rods
-                            </button>
-                            <button
-                                onClick={() =>
-                                    handleCategoryClick("fishing-lines")
-                                }
-                                className={`text-sm font-medium transition-colors py-1 ${
-                                    isCategoryActive("fishing-lines")
-                                        ? "text-pamasoul border-b-2 border-pamasoul-600"
-                                        : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
-                                }`}
-                            >
-                                Lines
-                            </button>
-                            <button
-                                onClick={() => handleCategoryClick("reels")}
-                                className={`text-sm font-medium transition-colors py-1 ${
-                                    isCategoryActive("reels")
-                                        ? "text-pamasoul border-b-2 border-pamasoul-600"
-                                        : "text-gray-700 hover:text-pamasoul border-b-2 border-transparent"
-                                }`}
-                            >
-                                Reels
-                            </button>
-                        </nav>
-
-                        {/* Right icons */}
-                        <div className="flex items-center space-x-4">
-                            {/* Search button */}
-                            <div className="w-5 h-5">
-                                {url === "/landing" && (
-                                    <button
-                                        onClick={() =>
-                                            setSearchOpen(!searchOpen)
+                                <Link
+                                    href="/shop"
+                                    className={
+                                        url === "/shop"
+                                            ? "text-pamasoul-700"
+                                            : "text-gray-600 hover:text-pamasoul-600"
+                                    }
+                                >
+                                    Shop all
+                                </Link>
+                                {categories.map(([name, slug]) => (
+                                    <Link
+                                        key={slug}
+                                        href={`/shop?category=${slug}`}
+                                        className={
+                                            url.includes(`category=${slug}`)
+                                                ? "text-pamasoul-700"
+                                                : "text-gray-600 hover:text-pamasoul-600"
                                         }
-                                        className="text-gray-600 hover:text-pamasoul-600"
                                     >
-                                        <MagnifyingGlassIcon className="h-5 w-5" />
-                                    </button>
-                                )}
-                            </div>
-
+                                        {name}
+                                    </Link>
+                                ))}
+                                <Link
+                                    href="/about"
+                                    className="text-gray-600 hover:text-pamasoul-600"
+                                >
+                                    Our story
+                                </Link>
+                            </nav>
+                            <MotionControl />
+                            <Menu as="div" className="relative hidden sm:block">
+                                <MenuButton
+                                    aria-label="Account menu"
+                                    className="flex gap-1 items-center min-h-[44px] p-3 rounded-xl text-gray-600 hover:bg-pamasoul-50"
+                                >
+                                    <UserIcon className="w-5 h-5" />
+                                    <ChevronDownIcon className="w-3 h-3" />
+                                </MenuButton>
+                                <MenuItems
+                                    transition
+                                    className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-pamasoul-100 shadow-xl p-2 origin-top-right transition data-[closed]:opacity-0 data-[closed]:scale-95"
+                                >
+                                    {auth.user && (
+                                        <p className="px-3 py-3 text-xs text-gray-500 truncate">
+                                            Signed in as {auth.user.name}
+                                        </p>
+                                    )}
+                                    {account.map(([href, text]) => (
+                                        <MenuItem key={href}>
+                                            <Link
+                                                href={href}
+                                                className="block p-3 text-sm rounded-xl data-[focus]:bg-pamasoul-50"
+                                            >
+                                                {text}
+                                            </Link>
+                                        </MenuItem>
+                                    ))}
+                                    {auth.user && (
+                                        <MenuItem>
+                                            <Link
+                                                href="/logout"
+                                                method="post"
+                                                as="button"
+                                                className="w-full text-left p-3 text-sm rounded-xl data-[focus]:bg-pamasoul-50"
+                                            >
+                                                Sign out
+                                            </Link>
+                                        </MenuItem>
+                                    )}
+                                </MenuItems>
+                            </Menu>
                             <Link
                                 href="/cart"
-                                className="relative text-gray-600 hover:text-pamasoul-600"
+                                aria-label={`Shopping cart, ${cartCount} items`}
+                                className="relative p-3 min-h-[44px] rounded-xl text-pamasoul-800 hover:bg-pamasoul-50"
                             >
-                                <ShoppingCartIcon className="h-5 w-5" />
+                                <ShoppingCartIcon className="w-5 h-5" />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                                    <span
+                                        key={cartCount}
+                                        className="quantity-value absolute top-0 right-0 rounded-full bg-pamasoul-600 text-white text-[10px] min-w-5 h-5 px-1 flex items-center justify-center"
+                                    >
                                         {cartCount}
                                     </span>
                                 )}
                             </Link>
-
-                            {/* User Dropdown Trigger */}
-                            {user ? (
-                                <div className="relative">
-                                    <button
-                                        ref={buttonRef}
-                                        onClick={() =>
-                                            setUserDropdownOpen(
-                                                !userDropdownOpen,
-                                            )
-                                        }
-                                        className="flex items-center space-x-2 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-pamasoul-500"
-                                    >
-                                        {/* Circle with initials */}
-                                        <div className="h-7 w-7 rounded-full bg-pamasoul-600 flex items-center justify-center">
-                                            <span className="text-xs font-semibold text-white">
-                                                {getUserInitials()}
-                                            </span>
-                                        </div>
-                                        {/* Dropdown icon */}
-                                        <ChevronDownIcon
-                                            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${userDropdownOpen ? "rotate-180" : ""}`}
-                                        />
-                                    </button>
-
-                                    {/* Dropdown Menu */}
-                                    {userDropdownOpen && (
-                                        <div
-                                            ref={dropdownRef}
-                                            className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 animate-fadeIn"
-                                        >
-                                            {/* Profile Section */}
-                                            <Link
-                                                href="/profile"
-                                                onClick={() =>
-                                                    setUserDropdownOpen(false)
-                                                }
-                                                className="block p-5 text-center hover:bg-gray-50 transition-colors border-b border-gray-100"
-                                            >
-                                                {/* Large circle with initials */}
-                                                <div className="h-16 w-16 rounded-full bg-pamasoul-600 flex items-center justify-center mx-auto mb-3 shadow-md">
-                                                    <span className="text-2xl font-bold text-white">
-                                                        {getUserInitials()}
-                                                    </span>
-                                                </div>
-                                                {/* User Name */}
-                                                <p className="font-semibold text-gray-900">
-                                                    {user.name}
-                                                </p>
-                                                {/* User Email */}
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {user.email}
-                                                </p>
-                                            </Link>
-
-                                            {/* Menu Items */}
-                                            <div className="py-2">
-                                                <Link
-                                                    href="/my-orders"
-                                                    onClick={() =>
-                                                        setUserDropdownOpen(
-                                                            false,
-                                                        )
-                                                    }
-                                                    className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <ClipboardDocumentListIcon className="h-5 w-5 mr-3 text-gray-400" />
-                                                    My Orders
-                                                </Link>
-                                                <Link
-                                                    href="/profile"
-                                                    onClick={() =>
-                                                        setUserDropdownOpen(
-                                                            false,
-                                                        )
-                                                    }
-                                                    className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <UserCircleIcon className="h-5 w-5 mr-3 text-gray-400" />
-                                                    Profile Settings
-                                                </Link>
-
-                                                {user.role === "admin" && (
-                                                    <Link
-                                                        href="/admin/dashboard"
-                                                        onClick={() =>
-                                                            setUserDropdownOpen(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="flex items-center px-4 py-2.5 text-sm text-pamasoul-600 hover:bg-gray-50 transition-colors border-t border-gray-100 mt-1"
-                                                    >
-                                                        <ShieldCheckIcon className="h-5 w-5 mr-3" />
-                                                        Admin Panel
-                                                    </Link>
-                                                )}
-
-                                                <Link
-                                                    href="/logout"
-                                                    method="post"
-                                                    as="button"
-                                                    onClick={() =>
-                                                        setUserDropdownOpen(
-                                                            false,
-                                                        )
-                                                    }
-                                                    className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 mt-1"
-                                                >
-                                                    <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3" />
-                                                    Logout
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="flex items-center space-x-2">
-                                    <Link
-                                        href="/login"
-                                        className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 hover:text-pamasoul-600"
-                                    >
-                                        <UserIcon className="h-4 w-4" />
-                                        <span>Login</span>
-                                    </Link>
-                                    <Link
-                                        href="/register"
-                                        className="flex items-center space-x-2 px-4 py-1.5 rounded-full bg-pamasoul-600 hover:bg-pamasoul-700 transition-colors text-sm font-medium text-white shadow-sm"
-                                    >
-                                        <UserIcon className="h-4 w-4" />
-                                        <span>Register</span>
-                                    </Link>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={() => setMobileMenuOpen(true)}
-                                className="md:hidden text-gray-600 hover:text-pamasoul-600"
+                            <DisclosureButton
+                                className="p-3 lg:hidden rounded-xl hover:bg-pamasoul-50"
+                                aria-label={open ? "Close menu" : "Open menu"}
                             >
-                                <Bars3Icon className="h-6 w-6" />
-                            </button>
+                                {open ? (
+                                    <XMarkIcon className="w-5 h-5" />
+                                ) : (
+                                    <Bars3Icon className="w-5 h-5" />
+                                )}
+                            </DisclosureButton>
                         </div>
-                    </div>
-                </div>
-
-                {/* Search bar */}
-                {searchOpen && (
-                    <div className="border-t border-gray-200 py-4 px-4 bg-white">
-                        <div className="max-w-7xl mx-auto">
+                        <DisclosurePanel
+                            transition
+                            className="border-t border-pamasoul-100 lg:hidden px-5 pb-5 transition data-[closed]:opacity-0"
+                        >
                             <form
-                                action="/shop"
-                                method="GET"
-                                className="relative"
+                                onSubmit={(e) => {
+                                    submitSearch(e);
+                                    close();
+                                }}
+                                className="flex gap-2 my-4"
                             >
                                 <input
-                                    type="text"
-                                    name="search"
-                                    placeholder="Search for fishing rods, reels, lines..."
-                                    className="w-full rounded-lg border-gray-300 pr-12 focus:border-pamasoul-500 focus:ring-pamasoul-500 text-gray-900 placeholder-gray-400"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    aria-label="Search products"
+                                    placeholder="Find your next rod, reel or line…"
+                                    className="rounded-xl border-gray-200 min-w-0 w-full text-sm focus:border-pamasoul-500 focus:ring-pamasoul-500"
                                 />
-                                {getCurrentCategory() && (
-                                    <input
-                                        type="hidden"
-                                        name="category"
-                                        value={getCurrentCategory()}
-                                    />
-                                )}
                                 <button
-                                    type="submit"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                                    className="button-primary px-4"
+                                    aria-label="Search"
                                 >
-                                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                                    <MagnifyingGlassIcon className="w-5 h-5" />
                                 </button>
                             </form>
-                        </div>
-                    </div>
-                )}
-            </header>
-
-            {/* Mobile menu sidebar - UPDATED with slugs */}
-            {mobileMenuOpen && (
-                <>
-                    <div
-                        className="fixed inset-0 z-50 bg-gray-900/50"
-                        onClick={() => setMobileMenuOpen(false)}
-                    />
-                    <div className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg">
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <span className="font-bold text-gray-900">
-                                Menu
-                            </span>
-                            <button onClick={() => setMobileMenuOpen(false)}>
-                                <XMarkIcon className="h-6 w-6 text-gray-600" />
-                            </button>
-                        </div>
-                        <nav className="p-4 space-y-3">
-                            <Link
-                                href="/"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className={`block py-2 text-base font-medium ${
-                                    isActive("/")
-                                        ? "text-pamasoul-600"
-                                        : "text-gray-700"
-                                }`}
+                            <nav
+                                aria-label="Mobile navigation"
+                                className="grid grid-cols-2 gap-1"
                             >
-                                Home
-                            </Link>
-                            <Link
-                                href="/shop"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className={`block py-2 text-base font-medium ${
-                                    isShopActive()
-                                        ? "text-pamasoul-600"
-                                        : "text-gray-700"
-                                }`}
-                            >
-                                Shop
-                            </Link>
-                            <button
-                                onClick={() => {
-                                    handleCategoryClick("fishing-rods");
-                                    setMobileMenuOpen(false);
-                                }}
-                                className={`block w-full text-left py-2 text-base font-medium ${
-                                    isCategoryActive("fishing-rods")
-                                        ? "text-pamasoul-600"
-                                        : "text-gray-700"
-                                }`}
-                            >
-                                Rods
-                            </button>
-                            <button
-                                onClick={() => {
-                                    handleCategoryClick("fishing-lines");
-                                    setMobileMenuOpen(false);
-                                }}
-                                className={`block w-full text-left py-2 text-base font-medium ${
-                                    isCategoryActive("fishing-lines")
-                                        ? "text-pamasoul-600"
-                                        : "text-gray-700"
-                                }`}
-                            >
-                                Lines
-                            </button>
-                            <button
-                                onClick={() => {
-                                    handleCategoryClick("reels");
-                                    setMobileMenuOpen(false);
-                                }}
-                                className={`block w-full text-left py-2 text-base font-medium ${
-                                    isCategoryActive("reels")
-                                        ? "text-pamasoul-600"
-                                        : "text-gray-700"
-                                }`}
-                            >
-                                Reels
-                            </button>
-                            <div className="border-t pt-3 mt-3">
-                                {user ? (
-                                    <>
-                                        <Link
-                                            href="/my-orders"
-                                            className="block py-2 text-gray-700"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            My Orders
-                                        </Link>
-                                        <Link
-                                            href="/profile"
-                                            className="block py-2 text-gray-700"
-                                            onClick={() =>
-                                                setMobileMenuOpen(false)
-                                            }
-                                        >
-                                            Profile
-                                        </Link>
-                                        {user.role === "admin" && (
-                                            <Link
-                                                href="/admin/dashboard"
-                                                className="block py-2 text-pamasoul-600"
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                            >
-                                                Admin Panel
-                                            </Link>
-                                        )}
-                                        <Link
-                                            href="/logout"
-                                            method="post"
-                                            as="button"
-                                            className="block w-full text-left py-2 text-red-600"
-                                        >
-                                            Logout
-                                        </Link>
-                                    </>
-                                ) : (
+                                {[
+                                    ["/shop", "Shop all"],
+                                    ...categories.map(([label, slug]) => [
+                                        `/shop?category=${slug}`,
+                                        label,
+                                    ]),
+                                    ["/about", "Our story"],
+                                    ["/support", "Support"],
+                                    ...account,
+                                ].map(([href, text]) => (
                                     <Link
-                                        href="/login"
-                                        className="block py-2 text-pamasoul-600"
-                                        onClick={() => setMobileMenuOpen(false)}
+                                        onClick={() => close()}
+                                        href={href}
+                                        key={href}
+                                        className="p-3 text-sm rounded-xl hover:bg-pamasoul-50"
                                     >
-                                        Login / Register
+                                        {text}
+                                    </Link>
+                                ))}
+                                {auth.user && (
+                                    <Link
+                                        href="/logout"
+                                        method="post"
+                                        as="button"
+                                        className="p-3 text-sm text-left"
+                                    >
+                                        Sign out
                                     </Link>
                                 )}
-                            </div>
-                        </nav>
-                    </div>
-                </>
-            )}
-
-            {/* Main Content */}
-            <main className="relative">
-                {/* Left Side Ad - Configurable positioning */}
-                {!hideAds && (
-                    <div
-                        className={`hidden xl:block absolute left-0 w-48 space-y-4 ${
-                            currentPage === "home" || currentPage === "landing"
-                                ? "top-[56vh]"
-                                : currentPage === "other"
-                                  ? "top-32"
-                                  : "top-[280px]"
-                        }`}
-                    >
-                        <AdBanner
-                            position="left"
-                            page={currentPage}
-                            className="rounded-none shadow-none"
-                            adHeight="h-auto"
-                        />
-                    </div>
+                            </nav>
+                        </DisclosurePanel>
+                    </>
                 )}
-
-                {/* Right Side Ad - Configurable positioning */}
-                {!hideAds && (
-                    <div
-                        className={`hidden xl:block absolute right-0 w-48 space-y-4 ${
-                            currentPage === "home" || currentPage === "landing"
-                                ? "top-[56vh]"
-                                : currentPage === "other"
-                                  ? "top-32"
-                                  : "top-[280px]"
-                        }`}
-                    >
-                        <AdBanner
-                            position="right"
-                            page={currentPage}
-                            className="rounded-none shadow-none"
-                            adHeight="h-auto"
-                        />
-                    </div>
-                )}
-
+            </Disclosure>
+            <main
+                id="main-content"
+                tabIndex={-1}
+                className="flex-1 outline-none page-content"
+            >
                 {children}
             </main>
-
             {/* Footer */}
             <footer className="bg-pamasoul-dark text-white mt-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -704,7 +386,7 @@ export default function CustomerLayout({ children }) {
                                     <span>✉️</span>
                                     <a
                                         href="mailto:support@pamasoul.com"
-                                        className="hover:text-white transition-colors"
+                                        className="break-all min-w-0 hover:text-white transition-colors"
                                     >
                                         support@pamasoul.com
                                     </a>
@@ -726,23 +408,6 @@ export default function CustomerLayout({ children }) {
                     </div>
                 </div>
             </footer>
-
-            {/* Add animation CSS */}
-            <style>{`
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.2s ease-out;
-                }
-            `}</style>
         </div>
     );
 }

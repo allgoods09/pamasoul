@@ -18,7 +18,7 @@ import {
     ChevronUpDownIcon,
     FunnelIcon,
 } from "@heroicons/react/24/outline";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function OrdersIndex({
     orders,
@@ -75,13 +75,11 @@ export default function OrdersIndex({
                 },
                 {
                     onSuccess: () => {
-                        toast.success(
-                            `${selectedOrders.length} order(s) updated to ${bulkStatus}`,
-                        );
+
                         setSelectedOrders([]);
                         setBulkStatus("");
                     },
-                    onError: () => toast.error("Failed to update orders"),
+                    onError: errors => toast.error(errors.status || "Failed to update orders"),
                 },
             );
         }
@@ -92,11 +90,8 @@ export default function OrdersIndex({
             `/admin/orders/${orderId}/status`,
             { status: newStatus },
             {
-                onSuccess: () =>
-                    toast.success(
-                        `Order #${orderId} status updated to ${newStatus}`,
-                    ),
-                onError: () => toast.error("Failed to update order status"),
+
+                onError: errors => toast.error(errors.status || "Failed to update order status"),
             },
         );
     };
@@ -141,7 +136,7 @@ export default function OrdersIndex({
     };
 
     const statusBadges = [
-        { label: "All", value: "", count: orders.total, icon: null },
+        { label: "All", value: "", count: Object.values(statusCounts).reduce((total, count) => total + count, 0), icon: null },
         {
             label: "Pending",
             value: "Pending",
@@ -173,7 +168,7 @@ export default function OrdersIndex({
     return (
         <AdminLayout>
             <Head title="Orders" />
-            <Toaster position="top-right" />
+
 
             <div className="space-y-6">
                 {/* Header */}
@@ -197,13 +192,7 @@ export default function OrdersIndex({
                                 <span className="ml-2 inline-flex h-2 w-2 rounded-full bg-pamasoul-600" />
                             )}
                         </button>
-                        {/* <button
-                            onClick={() => router.get('/admin/orders/export')}
-                            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
-                        >
-                            <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
-                            Export
-                        </button> */}
+                        <a href={`/admin/orders/export?${new URLSearchParams(Object.fromEntries(Object.entries(filters).filter(([, value]) => value)))}`} className="button-secondary px-3 text-xs"><DocumentArrowDownIcon className="w-4 h-4" />Export CSV</a>
                     </div>
                 </div>
 
@@ -434,7 +423,7 @@ export default function OrdersIndex({
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="text-sm font-medium text-gray-900">
-                                                    #{order.id}
+                                                    {order.reference || `#${order.id}`}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
                                                     Click to view
@@ -476,6 +465,8 @@ export default function OrdersIndex({
                                             <td className="px-4 py-4">
                                                 <select
                                                     value={order.status}
+                                                    aria-label={`Status of ${order.reference}`}
+                                                    disabled={!order.allowed_statuses?.length}
                                                     onChange={(e) =>
                                                         handleSingleStatusUpdate(
                                                             order.id,
@@ -484,18 +475,8 @@ export default function OrdersIndex({
                                                     }
                                                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border-0 focus:ring-2 focus:ring-pamasoul-500 cursor-pointer ${statusColor?.bg} ${statusColor?.text}`}
                                                 >
-                                                    <option value="Pending">
-                                                        Pending
-                                                    </option>
-                                                    <option value="Paid">
-                                                        Paid
-                                                    </option>
-                                                    <option value="Shipped">
-                                                        Shipped
-                                                    </option>
-                                                    <option value="Completed">
-                                                        Completed
-                                                    </option>
+                                                    <option value={order.status}>{order.status}</option>
+                                                    {order.allowed_statuses?.map(status => <option key={status} value={status}>{status}</option>)}
                                                 </select>
                                             </td>
                                             <td className="px-4 py-4">
@@ -539,28 +520,11 @@ export default function OrdersIndex({
                                                                 {},
                                                                 {
                                                                     preserveScroll: true,
-                                                                    onSuccess: (
-                                                                        page,
-                                                                    ) => {
-                                                                        if (
-                                                                            page
-                                                                                .props
-                                                                                .flash
-                                                                                ?.success
-                                                                        ) {
-                                                                            toast.success(
-                                                                                page
-                                                                                    .props
-                                                                                    .flash
-                                                                                    .success,
-                                                                            );
-                                                                        }
-                                                                    },
                                                                     onError: (
                                                                         errors,
                                                                     ) => {
                                                                         toast.error(
-                                                                            "Failed to send email",
+                                                                            errors.email || "Failed to send email",
                                                                         );
                                                                     },
                                                                 },

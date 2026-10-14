@@ -17,14 +17,14 @@ class OrderController extends Controller
         if ($order->user_id !== Auth::id()) {
             abort(403);
         }
-        
+
         $order->load('items.product');
-        
+
         return inertia('Customer/Orders/Confirmation', [
             'order' => $order,
         ]);
     }
-    
+
     /**
      * My orders listing
      */
@@ -35,23 +35,12 @@ class OrderController extends Controller
             ->with('items.product')
             ->latest()
             ->paginate(10);
-        
-        // Add shipping_fee to each order
-        $orders->getCollection()->transform(function ($order) {
-            $itemsSubtotal = $order->items->sum(function ($item) {
-                return $item->quantity * $item->price_snapshot;
-            });
-            $freeThreshold = config('shipping.free_threshold', 5000);
-            $baseFee = config('shipping.base_fee', 50);
-            $order->shipping_fee = $itemsSubtotal >= $freeThreshold ? 0 : $baseFee;
-            return $order;
-        });
-        
+
         return inertia('Customer/Orders/Index', [
             'orders' => $orders,
         ]);
     }
-    
+
     /**
      * View single order details
      */
@@ -61,17 +50,9 @@ class OrderController extends Controller
         if ($order->user_id !== Auth::id()) {
             abort(403);
         }
-        
+
         $order->load('items.product.category');
-        
-        // Calculate shipping fee
-        $itemsSubtotal = $order->items->sum(function ($item) {
-            return $item->quantity * $item->price_snapshot;
-        });
-        $freeThreshold = config('shipping.free_threshold', 5000);
-        $baseFee = config('shipping.base_fee', 50);
-        $order->shipping_fee = $itemsSubtotal >= $freeThreshold ? 0 : $baseFee;
-        
+
         return inertia('Customer/Orders/Show', [
             'order' => $order,
         ]);

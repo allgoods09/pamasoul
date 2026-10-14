@@ -3,192 +3,156 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
+use App\Support\CsvDownload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
-    // List all products with filters and pagination
     public function index(Request $request)
     {
+        $request->validate([
+            'search' => 'nullable|string|max:150', 'sort' => 'nullable|in:name,price,stock,created_at',
+            'direction' => 'nullable|in:asc,desc', 'max_stock' => 'nullable|integer|min:0|max:999999', 'category' => 'nullable|integer|exists:categories,id',
+            'stock_status' => 'nullable|in:in_stock,low_stock,out_of_stock,archived',
+            'min_price' => 'nullable|numeric|min:0|max:999999.99', 'max_price' => 'nullable|numeric|min:0|max:999999.99',
+        ]);
         $query = Product::with('category');
-        
-        // Search filter
         if ($request->filled('search')) {
             $query->search($request->search);
         }
-        
-        // Category filter
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
-        
-        // Stock status filter
         if ($request->filled('stock_status')) {
-            if ($request->stock_status === 'in_stock') {
-                $query->inStock();
-            } elseif ($request->stock_status === 'low_stock') {
-                $query->lowStock();
-            } elseif ($request->stock_status === 'out_of_stock') {
-                $query->outOfStock();
+            if ($request->stock_status === 'archived') {
+                $query->where('is_active', false);
+            } else {
+                $query->where('is_active', true);
+                match ($request->stock_status) {
+                    'in_stock' => $query->inStock(), 'low_stock' => $query->lowStock(), 'out_of_stock' => $query->outOfStock(),
+                };
             }
         }
-        
-        // Price range filter
+        if ($request->filled('max_stock')) {
+            $query->where('is_active', true)->where('stock', '<=', $request->max_stock);
+        }
         if ($request->filled('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
         if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
-        
-        // Sorting
-        $sortField = $request->get('sort', 'created_at');
-        $sortDirection = $request->get('direction', 'desc');
-        $query->orderBy($sortField, $sortDirection);
-        
-        $products = $query->paginate(15)->withQueryString();
-        $categories = Category::all();
-        
+        $query->orderBy($request->input('sort') ?: 'created_at', $request->input('direction') ?: 'desc')->orderBy('id', 'desc');
+
         return inertia('Admin/Products/Index', [
-            'products' => $products,
-            'categories' => $categories,
-            'filters' => $request->only(['search', 'category', 'stock_status', 'min_price', 'max_price', 'sort', 'direction']),
+            'products' => $query->paginate(15)->withQueryString(), 'categories' => Category::catalog()->get(),
+            'inventoryStats' => ['total' => Product::count(), 'inStock' => Product::where('is_active', true)->where('stock', '>', 5)->count(), 'lowStock' => Product::where('is_active', true)->whereBetween('stock', [1, 5])->count(), 'outOfStock' => Product::where('is_active', true)->where('stock', 0)->count()],
+            'filters' => $request->only(['search', 'category', 'stock_status', 'min_price', 'max_price', 'max_stock', 'sort', 'direction']),
         ]);
     }
-    
-    // Show form to create new product
+
+    private function validated(Request $request, ?Product $product = null): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:150', Rule::unique('products')->ignore($product?->id)],
+            'description' => 'nullable|string|max:10000', 'price' => 'required|numeric|min:0.01|max:999999.99|decimal:0,2',
+            'stock' => 'required|integer|min:0|max:999999',
+            'category_id' => ['required', Rule::exists('categories', 'id')->whereIn('slug', Category::CATALOG_SLUGS)],
+            'image' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                if (! preg_match('~^https?://~i', $value) && ! str_starts_with($value, '/images/')) {
+                    $fail('Use an HTTP(S) image URL or a local /images/ path.');
+                }
+            }],
+            'is_active' => 'sometimes|boolean', 'specifications' => ['nullable', 'array', 'max:20', function ($attribute, $value, $fail) {
+                foreach (array_keys($value) as $key) {
+                    if (strlen((string) $key) > 80 || ! trim((string) $key)) {
+                        $fail('Specification labels must be 1–80 characters.');
+                    }
+                }
+            }], 'specifications.*' => 'required|string|max:200',
+        ]);
+    }
+
     public function create()
     {
-        $categories = Category::all();
-        
-        return inertia('Admin/Products/Create', [
-            'categories' => $categories,
-        ]);
+        return inertia('Admin/Products/Create', ['categories' => Category::catalog()->get()]);
     }
-    
-    // Store new product
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:150|unique:products',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0|max:999999.99',
-            'stock' => 'required|integer|min:0|max:999999',
-            'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|string|max:500', // Image URL validation
-        ]);
-        
-        $product = Product::create($validated);
-        
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully!');
+        Product::create($this->validated($request));
+
+        return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
-    
-    // Show form to edit product
+
     public function edit(Product $product)
     {
-        $categories = Category::all();
-        
-        return inertia('Admin/Products/Edit', [
-            'product' => $product,
-            'categories' => $categories,
-        ]);
+        return inertia('Admin/Products/Edit', ['product' => $product, 'categories' => Category::catalog()->get()]);
     }
-    
-    // Update product
+
     public function update(Request $request, Product $product)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:150', Rule::unique('products')->ignore($product->id)],
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0|max:999999.99',
-            'stock' => 'required|integer|min:0|max:999999',
-            'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|string|max:500', // Image URL validation
-        ]);
-        
-        $product->update($validated);
-        
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product updated successfully!');
+        $data = $this->validated($request, $product);
+        DB::transaction(function () use ($product, $data) {
+            $locked = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
+            $locked->orderItems()->whereNull('product_name')->update(['product_name' => $locked->name]);
+            $locked->update($data);
+        });
+
+        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }
-    
-    // Delete product
+
     public function destroy(Product $product)
     {
-        $product->delete();
-        
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product deleted successfully!');
+        DB::transaction(fn () => Product::whereKey($product->id)->lockForUpdate()->firstOrFail()->update(['is_active' => false]));
+
+        return redirect()->route('admin.products.index')->with('success', 'Product archived. Inventory and order history are preserved.');
     }
-    
-    // Toggle availability (set stock to 0)
+
     public function toggleAvailability(Product $product)
     {
-        $product->update(['stock' => 0]);
-        
-        return redirect()->back()
-            ->with('success', 'Product marked as unavailable.');
+        $active = DB::transaction(function () use ($product) {
+            $locked = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
+            $locked->update(['is_active' => ! $locked->is_active]);
+
+            return $locked->is_active;
+        });
+
+        return back()->with('success', $active ? 'Product restored to the store.' : 'Product archived. Stock is preserved.');
     }
-    
-    // Bulk delete products
+
     public function bulkDelete(Request $request)
     {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:products,id',
-        ]);
-        
-        Product::whereIn('id', $request->ids)->delete();
-        
-        return redirect()->back()
-            ->with('success', count($request->ids) . ' products deleted successfully!');
+        $data = $request->validate(['ids' => 'required|array|min:1|max:100', 'ids.*' => 'required|integer|distinct|exists:products,id']);
+        DB::transaction(function () use ($data) {
+            foreach (Product::whereIn('id', $data['ids'])->orderBy('id')->lockForUpdate()->get() as $product) {
+                $product->update(['is_active' => false]);
+            }
+        });
+
+        return back()->with('success', count($data['ids']).' products archived.');
     }
-    
-    // Bulk update stock
+
     public function bulkUpdateStock(Request $request)
     {
-        $request->validate([
-            'products' => 'required|array',
-            'products.*.id' => 'exists:products,id',
-            'products.*.stock' => 'required|integer|min:0',
-        ]);
-        
-        foreach ($request->products as $productData) {
-            Product::where('id', $productData['id'])->update(['stock' => $productData['stock']]);
-        }
-        
-        return redirect()->back()
-            ->with('success', 'Stock updated successfully!');
+        $data = $request->validate(['products' => 'required|array|min:1|max:100', 'products.*.id' => 'required|integer|distinct|exists:products,id', 'products.*.stock' => 'required|integer|min:0|max:999999']);
+        DB::transaction(function () use ($data) {
+            foreach (collect($data['products'])->sortBy('id') as $row) {
+                Product::whereKey($row['id'])->lockForUpdate()->firstOrFail()->update(['stock' => $row['stock']]);
+            }
+        });
+
+        return back()->with('success', 'Inventory updated successfully.');
     }
-    
-    // Export products (CSV)
+
     public function export()
     {
-        $products = Product::with('category')->get();
-        
-        $csv = \League\Csv\Writer::createFromString('');
-        $csv->insertOne(['ID', 'Name', 'Description', 'Price', 'Stock', 'Category', 'Image URL', 'Created At']);
-        
-        foreach ($products as $product) {
-            $csv->insertOne([
-                $product->id,
-                $product->name,
-                $product->description,
-                $product->price,
-                $product->stock,
-                $product->category->name,
-                $product->image,
-                $product->created_at,
-            ]);
-        }
-        
-        return response($csv->toString(), 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="products.csv"',
-        ]);
+        $rows = Product::with('category')->orderBy('id')->lazy()->map(fn ($p) => [$p->id, $p->name, $p->description, $p->price, $p->stock, $p->category->name, $p->is_active ? 'Active' : 'Archived', $p->image, (string) $p->created_at]);
+
+        return CsvDownload::make('products.csv', ['ID', 'Name', 'Description', 'Price (PHP)', 'Stock', 'Category', 'Availability', 'Image', 'Created at'], $rows);
     }
 }

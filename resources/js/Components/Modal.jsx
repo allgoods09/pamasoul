@@ -3,14 +3,15 @@ import {
     DialogPanel,
     Transition,
     TransitionChild,
-} from '@headlessui/react';
+} from "@headlessui/react";
 
 export default function Modal({
     children,
     show = false,
-    maxWidth = '2xl',
+    maxWidth = "2xl",
     closeable = true,
     onClose = () => {},
+    label = "Dialog",
 }) {
     const close = () => {
         if (closeable) {
@@ -19,17 +20,18 @@ export default function Modal({
     };
 
     const maxWidthClass = {
-        sm: 'sm:max-w-sm',
-        md: 'sm:max-w-md',
-        lg: 'sm:max-w-lg',
-        xl: 'sm:max-w-xl',
-        '2xl': 'sm:max-w-2xl',
+        sm: "sm:max-w-sm",
+        md: "sm:max-w-md",
+        lg: "sm:max-w-lg",
+        xl: "sm:max-w-xl",
+        "2xl": "sm:max-w-2xl",
     }[maxWidth];
 
     return (
         <Transition show={show} leave="duration-200">
             <Dialog
                 as="div"
+                aria-label={label}
                 id="modal"
                 className="fixed inset-0 z-50 flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
                 onClose={close}
